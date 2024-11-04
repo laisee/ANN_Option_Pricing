@@ -14,7 +14,10 @@ from torch.utils.data import TensorDataset, DataLoader
 import matplotlib.pyplot as plt
 import plotly.express as px
 
-EPOCHS = 50
+#
+# Model settings
+#
+EPOCHS = 25
 
 #
 # Run BS ANN
@@ -100,7 +103,7 @@ def run_bs():
     inputs = torch.tensor(inputs).type(torch.float)
     real = bs(S,K,tau,r,sigma)
     model = BS_ANN(inputs).detach().numpy()
-    torch.save(model.state_dict(), 'bs_model_weights.pth')
+    #torch.save(model.state_dict(), 'bs_model_weights.pth')
 
     plt.plot(K,real,'r',label="Real BS function")
     plt.plot(K,model,'b',linestyle='dashed',label="BS-ANN")
@@ -165,5 +168,5 @@ def runHeston_compare():
     # torch.save(H_data, 'H_data.pt')
 
 if __name__ == "__main__":
-    print("Running BS ANN")
+    print("Running BS ANN ...")
     run_bs()

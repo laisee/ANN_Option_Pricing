@@ -19,6 +19,15 @@ import matplotlib as mpl
 SAMPLE_SIZE = 300_000
 TRAINING_TESTING_RATIO = 0.8
 
+#
+# ANN Model Settings
+#
+NODES = 120
+EPOCHS = 10
+BATCH_SIZE = 64
+LAYER = 100
+FEATURES = 5
+
 def checkAccuracy(y,y_hat):
     print("Checking accuracy ...")
     stats = dict()
@@ -60,7 +69,7 @@ def custom_activation(x):
 #
 # Define the Black-Scholes formula function
 #
-def black_scholes(S, K, T, r, sigma, q=0, option_type="call"):
+def black_scholes(S, K, T, r, sigma, q=0, option_type="call") -> float:
     d1 = (np.log(S / K) + (r - q + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
     
@@ -68,6 +77,7 @@ def black_scholes(S, K, T, r, sigma, q=0, option_type="call"):
         price = S * np.exp(-q * T) * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
     elif option_type == "put":
         price = K * np.exp(-r * T) * norm.cdf(-d2) - S * np.exp(-q * T) * norm.cdf(-d1)
+    return price
 
 def create_nn_model():
     model = Sequential([
@@ -113,7 +123,7 @@ dividends = np.random.uniform(0, 0.03, n_samples)      # Dividend yield between 
 volatility = np.random.uniform(0.1, 0.5, n_samples)    # Volatility between 10% and 50%
 rates = np.random.uniform(0.01, 0.05, n_samples)  # Risk-free rate between 1% and 5%
 
-print("calculate options prices")
+print("calculate option prices")
 #
 # generate a set of option prices using randomized sample data
 #
@@ -153,22 +163,35 @@ print("load training dataset")
 X_train = train[['asset_price', 'expiry', 'dividend', 'volatility', 'rate']].values
 Y_train = train['option_price'].values
 
+# Check if X_train is a numpy array
+if isinstance(X_train, np.ndarray):
+    X_train = X_train.astype(np.float32)  # Directly convert to float32
+else:
+    X_train = np.array(X_train, dtype=np.float32)  # Convert from other types
+
+# Similarly handle Y_train
+if isinstance(Y_train, np.ndarray):
+    Y_train = Y_train.astype(np.float32)  # Directly convert to float32
+else:
+    Y_train = np.array(Y_train, dtype=np.float32)  # Convert from other types
+
 print("load test dataset")
 # add df with testing data from sample set, size is 1 - TRAINING_TESTING_RATIO X SAMPLE_SIZE
 test = df[n_train+1:n]
 X_test = test[['asset_price', 'expiry', 'dividend', 'volatility', 'rate']].values
 Y_test = test['option_price'].values
-print(f"X/Test data: {X_test}") 
-print(f"Y/Test data: {Y_test}") 
 
-#
-# ANN Model Settings
-#
-NODES = 120
-EPOCHS = 10
-BATCH_SIZE = 64
-LAYER = 100
-FEATURES = 5
+# Check if X_train is a numpy array
+if isinstance(X_test, np.ndarray):
+    X_test = X_test.astype(np.float32)  # Directly convert to float32
+else:
+    X_test = np.array(X_test, dtype=np.float32)  # Convert from other types
+
+# Similarly handle Y_train
+if isinstance(Y_test, np.ndarray):
+    Y_test = Y_test.astype(np.float32)  # Directly convert to float32
+else:
+    Y_test = np.array(Y_test, dtype=np.float32)  # Convert from other types
 
 #
 # generate ANN model with an Input layer

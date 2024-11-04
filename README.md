@@ -16,4 +16,26 @@ Sample code showing Options pricing
 #### 1. Calculating BS price using ANN trained on generated sample data
 
  - Open terminal app on Mac OSX
- - Download code from this github repo
+ - Download code from this github repo(https://github.com/laisee/ANN_Option_Pricing)
+ - Run "pip install -r requirements.txt" to install python tools needed
+ - Run "python3 ann_model_01/run_bs_all_sampledata.py"
+ - Click on 1st displayed chart to view next one
+ - Click on 2nd displayed chart to complete the runnd other metrics for accuracy will be displayed at console
+ - Inside the code ("scripts/run_bs_ann_sampledata.py") settings can be updated, such as 
+    - SAMPLE_SIZE: number of sample records to generate for training set
+    - TRAINING_TESTING_RATIO: split between training & testing data sets e.g. 80% to 20%
+    - BATCH_SIZE: size used in training phase
+    - LAYER: num ber of layers in model 
+    - FEATURES: current training set has five features, update this value if more/less used 
+    - NODES: node count for NN model
+    - EPOCHS: number of epochs used in training phase
+
+#### 2. Calculating Options pricer using ANN (BS, Heston)
+ - Open terminal app on Mac OSX
+ - Download code from this github repo(https://github.com/laisee/ANN_Option_Pricing)
+ - Run "pip install -r requirements.txt" to install python tools needed
+ - Run "python3 ann_model_02/run_model.py "
+ - Wait for Epochs(Training) to complete 50 iterations (can be changed in run_model.py script)
+ - View chart showing training & testing loss values
+ - Inside the code ("ann_model_02/run_model.py") settings can be updated, such as:
+    - EPOCHS: number of iteration training phase

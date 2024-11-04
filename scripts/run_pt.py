@@ -17,7 +17,7 @@ class MyModel(nn.Module):
 
 # Initialize model and load state dict
 model = MyModel()
-model.load_state_dict(torch.load("BS_data.pt"))
+model.load_state_dict(torch.load("bs_data.pt"))
 model.eval()
 
 # Prepare input data
