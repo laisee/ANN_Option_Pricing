@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "ann-price-calc"
+version = "0.1.0"
+description = ""
+authors = ["Gavin Costin <villa.straylite@proton.me>"]
+license = "MIT"
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+torch = "^2.5.1"
+scipy = "^1.14.1"
+keras = "^3.6.0"
+matplotlib = "^3.9.2"
+numpy = ">=1.26.0,<2.1.0"
+tensorflow = "^2.18.0"
+pandas = "^2.2.3"
+tqdm = "^4.66.6"
+smt = "^2.7.0"
+plotly = "^5.24.1"
+seaborn = "^0.13.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+run-ann-model-01 = "ann_price_calc.ann_model_01.run_bs_ann_sampledata:main"
+run-ann-model-02 = "ann_price_calc.ann_model_02.run_model:main"
+run-ann-model-03 = "ann_price_calc.correlation.run_model:main"
