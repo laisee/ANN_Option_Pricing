@@ -1,7 +1,6 @@
 from tqdm import tqdm
 import numpy as np
 from scipy.stats import norm
-from scipy import optimize
 
 from heston import Heston_ANN, Heston_2, heston_implied_vol_, heston_implied_vol
 from blackscholes import bs, BlackScholes_ANN, train_loop
@@ -19,6 +18,8 @@ import plotly.express as px
 #
 EPOCHS = 25
 
+def price(asset_price,strike,expiry,rate,vol, call_type="call"):
+    return bs(asset_price,strike,expiry,rate,vol)
 #
 # Run BS ANN
 #

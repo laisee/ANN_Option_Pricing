@@ -72,13 +72,16 @@ def custom_activation(x):
 # Define the Black-Scholes formula function
 #
 def black_scholes(S, K, T, r, sigma, q=0, option_type="call") -> float:
+    price = -1.00
     d1 = (np.log(S / K) + (r - q + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
     
-    if option_type == "call":
+    if option_type.lower() == "call":
         price = S * np.exp(-q * T) * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
-    elif option_type == "put":
+    elif option_type.lower() == "put":
         price = K * np.exp(-r * T) * norm.cdf(-d2) - S * np.exp(-q * T) * norm.cdf(-d1)
+    else:
+        raise ValueError(f"error - invalid option type: {option_type}")
     return price
 
 def create_nn_model(dim: int):
@@ -112,8 +115,25 @@ def create_nn_model(dim: int):
     model.compile(loss='mse',optimizer='rmsprop')
     return model
 
-def main():
+def price(
+        asset_price=100.00,
+        strike=100.00,
+        expiry=0.5,
+        rate=0.05,
+        vol=0.20,
+        call_put="call"
+    ) -> float:
+    return black_scholes(
+        asset_price,
+        strike,
+        expiry,
+        rate,
+        vol,
+        0,
+        call_put
+        )
 
+def main():
     print("Creating random data for sample set of Option prices")
     print("initiating random seed")
     np.random.seed(0)  # for reproducibility
@@ -224,7 +244,7 @@ def main():
     #
     # Display charts (accuracy, pde)
     #
-    show_charts(Y_train, Y_train_hat, stats)
+    #show_charts(Y_train, Y_train_hat, stats)
 
 if __name__ == "__main__":
     print("Running BS ANN(sample data) ...")

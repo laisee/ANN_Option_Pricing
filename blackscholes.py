@@ -2,15 +2,33 @@ from torch import nn
 from scipy.stats import norm
 import numpy as np
 
-def bs(S,K,tau,r,sigma):
-  '''
-  Gives the scaled price of a european option as given by the closed B-S formula
-  '''
-  d_1 = np.divide((np.log(np.divide(S,K)) + (r+0.5*np.multiply(np.power(sigma,2),tau))), (np.multiply(sigma,np.sqrt(tau))))
-  d_2 = d_1 - np.multiply(sigma,np.sqrt(tau))
-
-  V = np.multiply(norm.cdf(x=d_1),S) - np.multiply(np.multiply(norm.cdf(x=d_2),K),np.exp(-np.multiply(r,tau)))
-  return V/K
+def bs(S: float, K: float, tau: float, r: float, sigma: float, option_type: str = "call") -> float:
+    """
+    Generates price of a European option (call or put) using the Black-Scholes formula.
+    
+    Parameters:
+    - S: float, Spot price of the underlying asset
+    - K: float, Strike price of the option
+    - tau: float, Time to maturity (in years)
+    - r: float, Risk-free interest rate
+    - sigma: float, Volatility of the underlying asset
+    - option_type: str, "call" for call option, "put" for put option (default is "call")
+    
+    Returns:
+    - V: float, Option price
+    """
+    
+    d_1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * tau) / (sigma * np.sqrt(tau))
+    d_2 = d_1 - sigma * np.sqrt(tau)
+    
+    if option_type == "call":
+        V = norm.cdf(d_1) * S - norm.cdf(d_2) * K * np.exp(-r * tau)
+    elif option_type == "put":
+        V = norm.cdf(-d_2) * K * np.exp(-r * tau) - norm.cdf(-d_1) * S
+    else:
+        raise ValueError("option_type must be 'call' or 'put'")
+    
+    return V
 
 class BlackScholes_ANN(nn.Module):
     def __init__(self):
