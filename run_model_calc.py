@@ -35,7 +35,7 @@ class BlackScholes_ANN(torch.nn.Module):
 model = BlackScholes_ANN()
 
 # Load the saved weights
-path = "bs_model_weights.pth"
+path = "models/bs_model_weights.pth"
 model.load_state_dict(torch.load(path, weights_only=True))
 
 # Set the model to evaluation mode
