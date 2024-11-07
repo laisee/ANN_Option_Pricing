@@ -9,7 +9,6 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
-torch = "^2.5.1"
 matplotlib = "^3.9.2"
 numpy = ">=1.26.0,<2.1.0"
 pandas = "^2.2.3"
@@ -21,6 +20,11 @@ seaborn = "^0.13.2"
 [tool.poetry.dev-dependencies]
 scipy = "^1.14.1"
 keras = "^3.6.0"
+
+[[tool.poetry.source]]
+name = "torch-stable"
+url = "https://download.pytorch.org/whl/"
+priority = "supplemental"
 
 [build-system]
 requires = ["poetry-core"]
