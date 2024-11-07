@@ -2,8 +2,6 @@ numpy==2.0.2
 torch==2.5.1
 matplotlib==3.9.2
 pandas==2.2.3
-scipy==1.14.1
-keras==3.6.0
 poetry==1.8.4
 poetry-core==1.9.1
 poetry-plugin-export==1.8.0

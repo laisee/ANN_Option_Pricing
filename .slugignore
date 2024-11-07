@@ -15,6 +15,7 @@ docs/
 .editorconfig
 .vscode/
 .idea/
+requirements-dev.txt
 
 # Test files
 tests/
