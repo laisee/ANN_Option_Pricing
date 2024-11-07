@@ -74,6 +74,8 @@ st.markdown("<span style='font-size: 36px'>Power.Trade - Option Pricer</span>", 
 st.write("\n")
 status_placeholder = st.empty()
 colSetting, colInput, colSpacer, colCalc = st.columns([0.30, 0.20, 0.10, 0.45])
+print(torch.cuda.is_available())
+st.write(f"CUDA support: {torch.cuda.is_available()}")
 st.markdown(
     """
     <style>
