@@ -173,11 +173,11 @@ with st.container():
                 # Adjust the shape according to your input dimensions.
                 sample_input = torch.tensor([inputs])
 
-                S   = inputs[0]      # stock price
-                K   = inputs[0] # strike
-                t   = inputs[1]      # tau
-                r   = RATE           # risk-free rate
-                vol = inputs[3]      # vol
+                #S   = inputs[0]      # stock price
+                #K   = inputs[0] # strike
+                #t   = inputs[1]      # tau
+                #r   = RATE           # risk-free rate
+                #vol = inputs[3]      # vol
 
                 #bs_result = black_scholes(S, strike, t, r, vol, type)
                 #print(f"BS price: {bs_result:.12f}")
