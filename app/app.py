@@ -1,6 +1,16 @@
 import streamlit as st
 import numpy as np
+from random import randint
+import torch
 from scipy.stats import norm
+from models.blackscholes import BlackScholes_ANN as bs_ann
+
+# Initialize the model
+model = bs_ann()
+
+# Load the saved weights
+path = "models/bs_model_weights.pth"
+model.load_state_dict(torch.load(path, weights_only=True))
 
 def binomial_tree(S, K, r, sigma, T, option_type, n=100):
     """
@@ -46,21 +56,6 @@ def binomial_tree(S, K, r, sigma, T, option_type, n=100):
             option_prices[i, j] = np.exp(-r * dt) * (p * option_prices[i + 1, j + 1] + (1 - p) * option_prices[i + 1, j])
 
     return option_prices[0, 0]
-
-# Example usage
-S = 100  # Current asset price
-K = 105  # Strike price
-r = 0.05  # Risk-free interest rate
-sigma = 0.2  # Volatility of the underlying asset
-T = 1  # Time to maturity in years
-
-call_price = binomial_tree(S, K, r, sigma, T, option_type='call')
-put_price = binomial_tree(S, K, r, sigma, T, option_type='put')
-
-print("Call Option Price:", call_price)
-print("Put Option Price:", put_price)
-
-
 def black_scholes(S, K, T, r, sigma, option_type="call") -> float:
     price = -1.00
     q = 0.01
@@ -97,13 +92,13 @@ with st.container():
         option_type = st.radio("Select Option Type", ["Call", "Put"], horizontal=True)
         exercise_type = st.radio("Select Exercise Type", ["European", "American"], horizontal=True, disabled=True)
         st.write("\n")
-        model_type = st.radio("Select Model", ["BinomialTree", "BlackScholes", "NeuralNetBS"], horizontal=False)
+        model_type = st.radio("Select Model", ["BinomialTree", "BlackScholes","MonteCarlo","NeuralNetBS"], horizontal=False)
     with colInput:
         st.write("\n")
         spot_price = st.slider("Input Spot Price",0.10, 100.00, 5.0,0.1)
         strike = st.slider("Input Strike",0.10, 100.00, 5.00, 0.1)
         volatility = st.slider("Input Volatility",5.00, 100.00, 20.00, 1.0)
-        riskless = st.slider("Input Riskless Rate",1.0, 10.00, 0.1, 0.1)
+        riskfree = st.slider("Input Riskfree Rate",1.0, 10.00, 0.1, 0.1)
         maturity = st.slider("Select months till maturity",1, 18, 3, 1)
     with colSpacer:
         st.write("")
@@ -154,18 +149,41 @@ with st.container():
                         <td align="right">{}</td>
                     </tr>
                 </table>
-            """.format(option_type, spot_price, strike, maturity, volatility, riskless), unsafe_allow_html=True)
+            """.format(option_type, spot_price, strike, maturity, volatility, riskfree), unsafe_allow_html=True)
             st.write("\n")
             st.markdown("<h4><b><i>Price:</i></b></h4>", unsafe_allow_html=True)
             st.write("\n")
             if model_type.lower() == "binomialtree":
-                option_price = binomial_tree(spot_price,strike,riskless,volatility/100.00,maturity,option_type,100)
+                option_price = binomial_tree(spot_price,strike,riskfree,volatility/100.00,maturity,option_type,100)
                 print(f"Option price[Binomial]: {option_price}")
             elif model_type.lower() == "blackscholes":
-                option_price = black_scholes(spot_price,strike,maturity,riskless,volatility/100.00,option_type)
+                option_price = black_scholes(spot_price,strike,maturity,riskfree,volatility/100.00,option_type)
                 print(f"Option price[BS]: {option_price}")
+            elif model_type.lower() == "montecarlo":
+                option_price = "To Be Completed"  # black_scholes(spot_price,strike,maturity,free,volatility,option_type)
+                print(f"Option price[Monte Carlo]: {option_price}")
             elif model_type.lower() == "neuralnetbs":
-                option_price = "To Be Completed"  # black_scholes(spot_price,strike,maturity,riskless,volatility,option_type)
+                q = float(randint(1,10)/10.00)
+                # Set the model to evaluation mode
+                model.eval()
+
+                inputs = [spot_price, maturity, q, volatility] # example: [stock price, time to expiry, dividends, volatility]
+                RATE = 0.05
+
+                # Adjust the shape according to your input dimensions.
+                sample_input = torch.tensor([inputs])
+
+                S   = inputs[0]      # stock price
+                K   = inputs[0] # strike
+                t   = inputs[1]      # tau
+                r   = RATE           # risk-free rate
+                vol = inputs[3]      # vol
+
+                #bs_result = black_scholes(S, strike, t, r, vol, type)
+                #print(f"BS price: {bs_result:.12f}")
+
+                with torch.no_grad():
+                    option_price = model(sample_input).item()
                 print(f"Option price[ANN_BS]: {option_price}")
             else:
                 st.write(f"Invalid Model selection: {model_type}")
