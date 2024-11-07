@@ -26,7 +26,7 @@ NODES = 120
 EPOCHS = 10
 BATCH_SIZE = 64
 LAYER = 100
-FEATURES = 5
+FEATURES = 6
 
 def checkAccuracy(y,y_hat):
     print("Checking accuracy ...")
@@ -86,7 +86,7 @@ def black_scholes(S, K, T, r, sigma, q=0, option_type="call") -> float:
 
 def create_nn_model(dim: int):
     model = Sequential([
-        Input(shape=(FEATURES,)),  # Set to 5 to match the input data's feature count
+        Input(shape=(FEATURES,)),  # Set to 6 to match the input data's feature count
         Dense(BATCH_SIZE),
         Activation(custom_activation),  # Apply the custom activation here
         Dropout(0.2),
@@ -184,7 +184,7 @@ def main():
     train = df[0:n_train]
 
     print("load training dataset")
-    X_train = train[['asset_price', 'expiry', 'dividend', 'volatility', 'rate']].values
+    X_train = train[['asset_price','strike', 'expiry', 'dividend', 'volatility', 'rate']].values
     Y_train = train['option_price'].values
 
     # Check if X_train is a numpy array
@@ -202,7 +202,7 @@ def main():
     print("load test dataset")
     # add df with testing data from sample set, size is 1 - TRAINING_TESTING_RATIO X SAMPLE_SIZE
     test = df[n_train+1:n]
-    X_test = test[['asset_price', 'expiry', 'dividend', 'volatility', 'rate']].values
+    X_test = test[['asset_price','strike', 'expiry', 'dividend', 'volatility', 'rate']].values
     Y_test = test['option_price'].values
 
     # Check if X_train is a numpy array
