@@ -1,9 +1,19 @@
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 import numpy as np
 from random import randint
 import torch
+import json
+import redis
+import pandas as pd
+import datetime as dt
 from scipy.stats import norm
 from models.blackscholes import BlackScholes_ANN as bs_ann
+
+COINS = ["ADA", "ARB", "BTC", "DOGE", "DOT", "ETH", "SOL", "TON", "TRX10000", "XRP"]
+# Set the interval in milliseconds (e.g., 2000 ms = 2 seconds)
+st.set_page_config(page_title='NN OptionPricer', layout="wide")
+st_autorefresh(interval=75000, key="auto_refresh")
 
 # Initialize the model
 model = bs_ann()
@@ -12,6 +22,44 @@ model = bs_ann()
 path = "models/bs_model_weights.pth"
 model.load_state_dict(torch.load(path, weights_only=True))
 
+if 'coin' not in st.session_state:
+    st.session_state.coin = COINS[0]
+if 'expiry' not in st.session_state:
+    st.session_state.expiry = '27-Dec-24'
+if "text" not in st.session_state:
+    st.session_state.text = ''
+if 'results' not in st.session_state:
+    st.session_state.results = pd.DataFrame()
+
+def get_redis_connection(host: str, pwd: str, port: int):
+    return redis.Redis(host=host, port=port, password=pwd, db=0, socket_timeout=5, decode_responses=True )
+def get_quotes(pattern: str, coin: str, count: int = 100) -> dict:
+    quotes = []
+    conn = get_redis_connection( "agreeable-whale-d8cfba9d95.redisgreen.net", "pmcenxje48hesq149mbnbwcegb4k7w6xn40bhv9r61ppk81r0tsh", 11042)
+    cursor = '0'
+    while cursor != 0:
+        cursor, keys = conn.scan(cursor=cursor, match=pattern, count=count)
+        if keys:
+            # Use a pipeline to fetch all key values in a single round-trip
+            with conn.pipeline() as pipe:
+                for key in keys:
+                    print( f"getting record '{key}'")
+                    pipe.get(key)
+                values = pipe.execute()
+            for key, value in zip(keys, values):
+                if key is not None and value is not None:
+                    try:
+                        obj = json.loads(value)
+                        obj["strike"] = key.replace(":P", "").replace(":C", "").split("-")[2]
+                        obj["type"] = "Call" if key.endswith("C") else "Put"
+                        obj['bid_price'] = convert(coin, obj['bid_price'])
+                        obj['ask_price'] = convert(coin, obj['ask_price'])
+                        quotes.append(json.dumps(obj))
+                    except Exception as e:
+                        print(f"An unexpected error occurred: {e}")
+    st.session_state.text = f"completed query for {pattern}, found {len(quotes)} records"
+    print(f"completed query for {pattern}, found {len(quotes)} records")
+    return quotes
 def binomial_tree(S, K, r, sigma, T, option_type, n=100):
     """
     Calculate the price of a European call or put option using a Binomial Tree.
@@ -69,126 +117,252 @@ def black_scholes(S, K, T, r, sigma, option_type="call") -> float:
     else:
         raise ValueError(f"error - invalid option type: {option_type}")
     return price
+def monte_carlo( asset_price, strike, risk_free_rate, volatility, maturity, option_type, n=10000):
+    # Calculate the drift and diffusion components
+    dt = maturity
+    drift = (risk_free_rate - (0.5 * volatility/100.00**2)) * dt
+    print(f"MC:Drift: {drift}")
+    diffusion = volatility * np.sqrt(dt)
+    print(f"MC:Diffusion: {diffusion}")
 
+    # Simulate asset price paths
+    asset_prices_at_maturity = asset_price * np.exp(drift + diffusion * np.random.randn(n))
+
+    # Calculate the option payoff at maturity
+    if option_type.lower() == "call":
+        payoffs = np.maximum(asset_prices_at_maturity - strike, 0)
+    elif option_type.lower() == "put":
+        payoffs = np.maximum(strike - asset_prices_at_maturity, 0)
+    else:
+        raise ValueError("Invalid option type. Use 'call' or 'put'.")
+    print(f"MC:Payoffs: {payoffs}")
+
+    # Discount the expected payoff back to present value
+    option_price = np.exp(-risk_free_rate * maturity) * np.mean(payoffs)
+    print(f"MC:Option Price: {option_price}")
+    return option_price
+
+date_conversion = {
+    "09-Nov-24": "20241109",
+    "10-Nov-24": "20241110",
+    "11-Nov-24": "20241111",
+    "15-Nov-24": "20241115",
+    "22-Nov-24": "20241122",
+    "29-Nov-24": "20241129",
+    "27-Dec-24": "20241227",
+    "28-Mar-25": "20250328",
+    "27-Jun-25": "20250627",
+    "28-Sep-25": "20250926"
+}
 st.markdown("<span style='font-size: 36px'>Power.Trade - Option Pricer</span>", unsafe_allow_html=True)
 st.write("\n")
 status_placeholder = st.empty()
-colSetting, colInput, colSpacer, colCalc = st.columns([0.30, 0.20, 0.10, 0.45])
-print(torch.cuda.is_available())
-st.markdown(
-    """
-    <style>
-    .main > div {
-        max-width: 80%;
-        margin: auto;
+
+tabIV, tabPrice = st.tabs(["Implied Vol","Price"])
+
+def convert(coin, value, default=0.00):
+    precision = {
+        "BCH": 6,
+        "BNB": 3,
+        "BTC": 2,
+        "DOGE": 3,
+        "ETH": 3,
+        "FIL": 4,
+        "ICP": 2,
+        "LINK": 2,
+        "NEAR": 2,
+        "ORDI": 3,
+        "SOL": 4,
+        "TON": 2,
+        "XRP": 6
     }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-with st.container():
-    st.markdown('<div class="container">', unsafe_allow_html=True)
-    with colSetting:
-        st.write("\n")
-        option_type = st.radio("Select Option Type", ["Call", "Put"], horizontal=True)
-        exercise_type = st.radio("Select Exercise Type", ["European", "American"], horizontal=True, disabled=True)
-        st.write("\n")
-        model_type = st.radio("Select Model", ["BinomialTree", "BlackScholes","MonteCarlo","NeuralNetBS"], horizontal=False)
-    with colInput:
-        st.write("\n")
-        spot_price = st.slider("Input Spot Price",0.10, 100.00, 5.0,0.1)
-        strike = st.slider("Input Strike",0.10, 100.00, 5.00, 0.1)
-        volatility = st.slider("Input Volatility",5.00, 100.00, 20.00, 1.0)
-        riskfree = st.slider("Input Riskfree Rate",1.0, 10.00, 0.1, 0.1)
-        maturity = st.slider("Select months till maturity",1, 18, 3, 1)
-    with colSpacer:
-        st.write("")
-    with colCalc:
-        option_price = 0.00
-        st.markdown("""
+    try:
+        return float(value) / 10**precision.get(coin)
+    except (TypeError, ValueError):
+        return default
+
+def getMarketPrice(coin: str, expiry: str):
+    expiry = date_conversion.get(expiry)
+    key = f"tob:{coin}-{expiry}*"
+    print(f"KEY: {key}")
+    quotes = get_quotes(key, coin)
+    st.session_state.text = ""
+    sorted_data = None
+    if len(quotes) > 0:
+        data = pd.DataFrame([json.loads(quote) for quote in quotes])
+        data = data.drop(columns=["market_id", "timestamp", "tradeable_entity_id", "bid_quantity", "ask_quantity"])
+        data = data.rename(columns={"symbol": "product", "bid_price": "bid", "ask_price": "ask"})
+        sorted_data = data.sort_values(by=["type", "strike"])
+    else:
+        sorted_data = pd.DataFrame()
+    st.session_state.results = sorted_data
+    st.session_state.text = "updated @ ts = " + str(dt.datetime.now(dt.UTC))
+
+# Define a callback function to update the text input based on radio selection
+def update_selected_coin():
+    st.session_state.text = f"You selected: {st.session_state.coin} with expiry '{st.session_state.expiry}'" if st.session_state.expiry is not None else  f"You selected: {st.session_state.coin}" 
+    print(f"selected coin: {st.session_state.coin}")
+    getMarketPrice(st.session_state.coin,  st.session_state.expiry)
+
+def update_selected_expiry():
+    st.session_state.text = f"You selected: {st.session_state.expiry} with coin '{st.session_state.coin}'" if st.session_state.coin is not None else  f"You selected: {st.session_state.expiry}" 
+    print(f"selected expiry: {st.session_state.expiry}")
+    getMarketPrice(st.session_state.coin,  st.session_state.expiry)
+
+with tabIV:
+    colInput, colSpacer, colResults = st.columns([0.30,0.05,0.65])
+    with st.container():
+        st.markdown(
+            """
+            <style>
+            .main > div {
+                max-width: 80%;
+                margin: auto;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        ) 
+        with colInput:
+            st.write("\n")
+            coin = st.radio(
+                "select Coin", 
+                COINS,
+                key='coin',
+                on_change=update_selected_coin,
+                horizontal=True)
+            expiry = st.radio(
+                "select Expiry", 
+                ["08-Nov-24", "09-Nov-24", "11-Nov-24", "15-Nov-24", "22-Nov-24", "27-Dec-24", "25-Mar-25", "27-Jun-25", "28-Sep-25"], 
+                key='expiry',
+                on_change=update_selected_expiry,
+                horizontal=False)
+        with colSpacer:
+            st.write("\n")
+        with colResults:
+            st.write("\n")
+            st.text_input(
+                '...',
+                value=st.session_state.text,
+                key="text"
+            )
+            st.dataframe(st.session_state.results, hide_index=True, column_order=["type","strike","symbol","bid", "ask"], use_container_width=True)
+with tabPrice:
+    colSetting, colInput, colSpacer, colCalc = st.columns([0.30, 0.20, 0.10, 0.45])
+    st.markdown(
+        """
         <style>
-        .stButton > button,
-        .stButton > button:hover,
-        .stButton > button:focus,
-        .stButton > button:active {
-            color: #00ff00 !important;
-            border-color: #00ff00 !important;
-            background-color: #004400 !important;
-            box-shadow: none !important;
-            outline: none !important;
-            margin: 0 auto;
+        .main > div {
+            max-width: 80%;
+            margin: auto;
         }
         </style>
-        """, unsafe_allow_html=True)
-        calc = st.button("Calculate Price")
-        if calc:
-            st.markdown("<h4><b><i>Parameters:</i></b></h4>", unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True
+    )
+    with st.container():
+        st.markdown('<div class="container">', unsafe_allow_html=True)
+        with colSetting:
+            st.write("\n")
+            option_type = st.radio("Select Option Type", ["Call", "Put"], horizontal=True)
+            exercise_type = st.radio("Select Exercise Type", ["European", "American"], horizontal=True, disabled=True)
+            st.write("\n")
+            model_type = st.radio("Select Model", ["BinomialTree", "BlackScholes","NeuralNetBS"], horizontal=False)
+        with colInput:
+            st.write("\n")
+            spot_price = st.slider("Input Spot Price",0.10, 100.00, 5.0,0.1)
+            strike = st.slider("Input Strike",0.10, 100.00, 5.00, 0.1)
+            volatility = st.slider("Input Volatility",5.00, 100.00, 20.00, 1.0)
+            riskfree = st.slider("Input Riskfree Rate",1.0, 10.00, 0.888, 0.1)
+            maturity = st.slider("Select months till maturity",1, 18, 3, 1)
+        with colSpacer:
+            st.write("")
+        with colCalc:
+            option_price = 0.00
             st.markdown("""
-                <table>
-                    <tr>
-                        <th>Type:</th>
-                        <td align="right">{}</td>
-                    </tr>
-                    <tr>
-                        <th>Spot:</th>
-                        <td align="right">{}</td>
-                    </tr>
-                    <tr>
-                        <th>Strike:</th>
-                        <td align="right">{}</td>
-                    </tr>
-                    <tr>
-                        <th>Expiry:</th>
-                        <td align="right">{}</td>
-                    </tr>
-                    <tr>
-                        <th>Vol:</th>
-                        <td align="right">{}</td>
-                    </tr>
-                    <tr>
-                        <th>Rate:</th>
-                        <td align="right">{}</td>
-                    </tr>
-                </table>
-            """.format(option_type, spot_price, strike, maturity, volatility, riskfree), unsafe_allow_html=True)
-            st.write("\n")
-            st.markdown("<h4><b><i>Price:</i></b></h4>", unsafe_allow_html=True)
-            st.write("\n")
-            if model_type.lower() == "binomialtree":
-                option_price = binomial_tree(spot_price,strike,riskfree,volatility/100.00,maturity,option_type,100)
-                print(f"Option price[Binomial]: {option_price}")
-            elif model_type.lower() == "blackscholes":
-                option_price = black_scholes(spot_price,strike,maturity,riskfree,volatility/100.00,option_type)
-                print(f"Option price[BS]: {option_price}")
-            elif model_type.lower() == "montecarlo":
-                option_price = "To Be Completed"  # black_scholes(spot_price,strike,maturity,free,volatility,option_type)
-                print(f"Option price[Monte Carlo]: {option_price}")
-            elif model_type.lower() == "neuralnetbs":
-                q = float(randint(1,10)/10.00)
-                # Set the model to evaluation mode
-                model.eval()
+            <style>
+            .stButton > button,
+            .stButton > button:hover,
+            .stButton > button:focus,
+            .stButton > button:active {
+                color: #00ff00 !important;
+                border-color: #00ff00 !important;
+                background-color: #004400 !important;
+                box-shadow: none !important;
+                outline: none !important;
+                margin: 0 auto;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+            calc = st.button("Calculate Price")
+            if calc:
+                st.markdown("<h4><b><i>Parameters:</i></b></h4>", unsafe_allow_html=True)
+                st.markdown("""
+                    <table>
+                        <tr>
+                            <th>Type:</th>
+                            <td align="right">{}</td>
+                        </tr>
+                        <tr>
+                            <th>Spot:</th>
+                            <td align="right">{}</td>
+                        </tr>
+                        <tr>
+                            <th>Strike:</th>
+                            <td align="right">{}</td>
+                        </tr>
+                        <tr>
+                            <th>Expiry:</th>
+                            <td align="right">{}</td>
+                        </tr>
+                        <tr>
+                            <th>Vol:</th>
+                            <td align="right">{}</td>
+                        </tr>
+                        <tr>
+                            <th>Rate:</th>
+                            <td align="right">{}</td>
+                        </tr>
+                    </table>
+                """.format(option_type, spot_price, strike, maturity, volatility, riskfree), unsafe_allow_html=True)
+                st.write("\n")
+                st.markdown("<h4><b><i>Price:</i></b></h4>", unsafe_allow_html=True)
+                st.write("\n")
+                if model_type.lower() == "binomialtree":
+                    option_price = binomial_tree(spot_price,strike,riskfree,volatility/100.00,maturity,option_type,100)
+                    print(f"Option price[Binomial]: {option_price}")
+                elif model_type.lower() == "blackscholes":
+                    option_price = black_scholes(spot_price,strike,maturity,riskfree,volatility/100.00,option_type)
+                    print(f"Option price[BS]: {option_price}")
+                elif model_type.lower() == "montecarlo":
+                    option_price = monte_carlo(spot_price, strike, riskfree, volatility, maturity, option_type)
+                    print(f"Option price[Monte Carlo]: {option_price}")
+                elif model_type.lower() == "neuralnetbs":
+                    q = float(randint(1,10)/10.00)
+                    # Set the model to evaluation mode
+                    model.eval()
 
-                inputs = [spot_price, maturity, q, volatility] # example: [stock price, time to expiry, dividends, volatility]
-                RATE = 0.05
+                    inputs = [spot_price, maturity, q, volatility] # example: [stock price, time to expiry, dividends, volatility]
+                    RATE = 0.05
 
-                # Adjust the shape according to your input dimensions.
-                sample_input = torch.tensor([inputs])
+                    # Adjust the shape according to your input dimensions.
+                    sample_input = torch.tensor([inputs])
 
-                #S   = inputs[0]      # stock price
-                #K   = inputs[0] # strike
-                #t   = inputs[1]      # tau
-                #r   = RATE           # risk-free rate
-                #vol = inputs[3]      # vol
+                    #S   = inputs[0]      # stock price
+                    #K   = inputs[0] # strike
+                    #t   = inputs[1]      # tau
+                    #r   = RATE           # risk-free rate
+                    #vol = inputs[3]      # vol
 
-                #bs_result = black_scholes(S, strike, t, r, vol, type)
-                #print(f"BS price: {bs_result:.12f}")
+                    #bs_result = black_scholes(S, strike, t, r, vol, type)
+                    #print(f"BS price: {bs_result:.12f}")
 
-                with torch.no_grad():
-                    option_price = model(sample_input).item()
-                print(f"Option price[ANN_BS]: {option_price}")
-            else:
-                st.write(f"Invalid Model selection: {model_type}")
-                option_price = -0.01
-                print(f"Option price[err]: {option_price}")
-            st.markdown("<h4><b><i>{}</i></b></h4>".format(option_price), unsafe_allow_html=True)
-            st.write("\n")
+                    with torch.no_grad():
+                        option_price = model(sample_input).item()
+                    print(f"Option price[ANN_BS]: {option_price}")
+                else:
+                    st.write(f"Invalid Model selection: {model_type}")
+                    option_price = -0.01
+                    print(f"Option price[err]: {option_price}")
+                st.markdown("<h4><b><i>{}</i></b></h4>".format(option_price), unsafe_allow_html=True)
+                st.write("\n")
