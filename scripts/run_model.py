@@ -2,8 +2,8 @@ from tqdm import tqdm
 import numpy as np
 from scipy.stats import norm
 
-from heston import Heston_ANN, Heston_2, heston_implied_vol_, heston_implied_vol
-from blackscholes import bs, BlackScholes_ANN, train_loop
+from models.heston import Heston_ANN, Heston_2, heston_implied_vol_, heston_implied_vol
+from models.blackscholes import bs, BlackScholes_ANN, train_loop
 from utils import truncation
 
 from smt.sampling_methods import LHS
@@ -24,6 +24,7 @@ def price(asset_price,strike,expiry,rate,vol, call_type="call"):
 # Run BS ANN
 #
 def run_bs():
+    print("Running Black Scholes ANN ...")
 
     S = 100
     L = 50
@@ -136,7 +137,8 @@ def run_bs_compare():
     plt.ylabel("Scaled price V/K")
     plt.legend()
 
-def runHeston_compare():
+def run_heston():
+    print("Running Heston ANN ...")
     S = 100
     L = 50
     N = 1500
@@ -165,11 +167,11 @@ def runHeston_compare():
 
     H_data = torch.tensor(labeled_H).type(torch.float)
 
+    print(H_data)
     # torch.save(H_data, 'H_data.pt')
 
 def main():
-    run_bs()
+    run_heston()
 
 if __name__ == "__main__":
-    print("Running BS ANN ...")
     main()

@@ -7,8 +7,18 @@ import json
 import redis
 import pandas as pd
 import datetime as dt
+import os
+from scipy.integrate import quad
+from dotenv import load_dotenv
 from scipy.stats import norm
 from models.blackscholes import BlackScholes_ANN as bs_ann
+
+# Hestonn model parameters
+kappa = 2.0   # Mean reversion rate
+theta = 0.05  # Long-term average volatility
+sigma = 0.3   # Volatility of volatility
+rho = -0.5    # Correlation coefficient
+v0 = 0.05     # Initial volatility
 
 COINS = ["ADA", "ARB", "BTC", "DOGE", "DOT", "ETH", "SOL", "TON", "TRX10000", "XRP"]
 # Set the interval in milliseconds (e.g., 2000 ms = 2 seconds)
@@ -31,11 +41,13 @@ if "text" not in st.session_state:
 if 'results' not in st.session_state:
     st.session_state.results = pd.DataFrame()
 
+load_dotenv()
+
 def get_redis_connection(host: str, pwd: str, port: int):
     return redis.Redis(host=host, port=port, password=pwd, db=0, socket_timeout=5, decode_responses=True )
 def get_quotes(pattern: str, coin: str, count: int = 100) -> dict:
     quotes = []
-    conn = get_redis_connection( "agreeable-whale-d8cfba9d95.redisgreen.net", "pmcenxje48hesq149mbnbwcegb4k7w6xn40bhv9r61ppk81r0tsh", 11042)
+    conn = get_redis_connection(os.getenv('REDIS_HOST'),os.getenv('REDIS_PWD'),os.getenv('REDIS_PORT'))
     cursor = '0'
     while cursor != 0:
         cursor, keys = conn.scan(cursor=cursor, match=pattern, count=count)
@@ -142,6 +154,26 @@ def monte_carlo( asset_price, strike, risk_free_rate, volatility, maturity, opti
     print(f"MC:Option Price: {option_price}")
     return option_price
 
+def heston_characteristic_function(u, S0, K, r, T, kappa, theta, sigma, rho, v0):
+   xi = kappa - rho * sigma * 1j * u
+   d = np.sqrt((rho * sigma * 1j * u - xi)**2 - sigma**2 * (-u * 1j - u**2))
+   g = (xi - rho * sigma * 1j * u - d) / (xi - rho * sigma * 1j * u + d)
+   C = r * 1j * u * T + (kappa * theta) / sigma**2 * ((xi - rho * sigma * 1j * u - d) * T - 2 * np.log((1 - g * np.exp(-d * T)) / (1 - g)))
+   D = (xi - rho * sigma * 1j * u - d) / sigma**2 * ((1 - np.exp(-d * T)) / (1 - g * np.exp(-d * T)))
+   return np.exp(C + D * v0 + 1j * u * np.log(S0))
+
+# Define functions to compute call and put options prices
+def heston_call_price(S0, K, r, T, kappa, theta, sigma, rho, v0):
+   integrand = lambda u: np.real(np.exp(-1j * u * np.log(K)) / (1j * u) * heston_characteristic_function(u - 1j, S0, K, r, T, kappa, theta, sigma, rho, v0))
+   integral, _ = quad(integrand, 0, np.inf)
+   return np.exp(-r * T) * 0.5 * S0 - np.exp(-r * T) / np.pi * integral
+
+
+def heston_put_price(S0, K, r, T, kappa, theta, sigma, rho, v0):
+   integrand = lambda u: np.real(np.exp(-1j * u * np.log(K)) / (1j * u) * heston_characteristic_function(u - 1j, S0, K, r, T, kappa, theta, sigma, rho, v0))
+   integral, _ = quad(integrand, 0, np.inf)
+   return np.exp(-r * T) / np.pi * integral - S0 + K * np.exp(-r * T)
+
 date_conversion = {
     "09-Nov-24": "20241109",
     "10-Nov-24": "20241110",
@@ -159,7 +191,6 @@ st.write("\n")
 status_placeholder = st.empty()
 
 tabIV, tabPrice = st.tabs(["Implied Vol","Price"])
-
 def convert(coin, value, default=0.00):
     precision = {
         "BCH": 6,
@@ -180,7 +211,6 @@ def convert(coin, value, default=0.00):
         return float(value) / 10**precision.get(coin)
     except (TypeError, ValueError):
         return default
-
 def getMarketPrice(coin: str, expiry: str):
     expiry = date_conversion.get(expiry)
     key = f"tob:{coin}-{expiry}*"
@@ -197,18 +227,15 @@ def getMarketPrice(coin: str, expiry: str):
         sorted_data = pd.DataFrame()
     st.session_state.results = sorted_data
     st.session_state.text = "updated @ ts = " + str(dt.datetime.now(dt.UTC))
-
 # Define a callback function to update the text input based on radio selection
 def update_selected_coin():
     st.session_state.text = f"You selected: {st.session_state.coin} with expiry '{st.session_state.expiry}'" if st.session_state.expiry is not None else  f"You selected: {st.session_state.coin}" 
     print(f"selected coin: {st.session_state.coin}")
     getMarketPrice(st.session_state.coin,  st.session_state.expiry)
-
 def update_selected_expiry():
     st.session_state.text = f"You selected: {st.session_state.expiry} with coin '{st.session_state.coin}'" if st.session_state.coin is not None else  f"You selected: {st.session_state.expiry}" 
     print(f"selected expiry: {st.session_state.expiry}")
     getMarketPrice(st.session_state.coin,  st.session_state.expiry)
-
 with tabIV:
     colInput, colSpacer, colResults = st.columns([0.30,0.05,0.65])
     with st.container():
@@ -267,14 +294,14 @@ with tabPrice:
             option_type = st.radio("Select Option Type", ["Call", "Put"], horizontal=True)
             exercise_type = st.radio("Select Exercise Type", ["European", "American"], horizontal=True, disabled=True)
             st.write("\n")
-            model_type = st.radio("Select Model", ["BinomialTree", "BlackScholes","NeuralNetBS"], horizontal=False)
+            model_type = st.radio("Select Model", ["BinomialTree", "BlackScholes", "Heston", "NeuralNetBS"], horizontal=False)
         with colInput:
             st.write("\n")
             spot_price = st.slider("Input Spot Price",0.10, 100.00, 5.0,0.1)
             strike = st.slider("Input Strike",0.10, 100.00, 5.00, 0.1)
             volatility = st.slider("Input Volatility",5.00, 100.00, 20.00, 1.0)
-            riskfree = st.slider("Input Riskfree Rate",1.0, 10.00, 0.888, 0.1)
-            maturity = st.slider("Select months till maturity",1, 18, 3, 1)
+            riskfree = st.slider("Input Riskfree Rate",1.0, 10.00, 0.05, 0.1)
+            maturity = st.slider("Select months till maturity",1, 18, 12, 1)
         with colSpacer:
             st.write("")
         with colCalc:
@@ -337,6 +364,14 @@ with tabPrice:
                 elif model_type.lower() == "montecarlo":
                     option_price = monte_carlo(spot_price, strike, riskfree, volatility, maturity, option_type)
                     print(f"Option price[Monte Carlo]: {option_price}")
+                elif model_type.lower() == "heston":
+                    # Calculate call and put option prices
+                    if option_type.lower() == "call":
+                        print(f"Heston/Call: {option_price}")
+                        option_price = heston_call_price(spot_price, strike, riskfree, maturity, kappa, theta, sigma, rho, v0)
+                    elif option_type.lower() == "put":
+                        option_price = heston_put_price(spot_price, strike, riskfree, maturity, kappa, theta, sigma, rho, v0)
+                        print(f"Heston/Put: {option_price}")
                 elif model_type.lower() == "neuralnetbs":
                     q = float(randint(1,10)/10.00)
                     # Set the model to evaluation mode

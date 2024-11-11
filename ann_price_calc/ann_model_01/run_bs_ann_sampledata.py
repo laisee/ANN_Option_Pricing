@@ -241,6 +241,7 @@ def main():
     # Calc stats and print errors
     #
     stats = checkAccuracy(Y_train, Y_train_hat)
+    print(f"Stats: {stats}")
     #
     # Display charts (accuracy, pde)
     #
