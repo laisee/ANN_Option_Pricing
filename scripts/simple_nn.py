@@ -21,7 +21,7 @@ model = nn.Sequential(
 loss_fn = nn.BCELoss()  # binary cross entropy
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-n_epochs = 400
+n_epochs = 500
 batch_size = 10
  
 for epoch in range(n_epochs):
@@ -33,14 +33,15 @@ for epoch in range(n_epochs):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-    print(f'Finished epoch {epoch}, latest loss {loss}')
+    print(f'epoch: {epoch}, loss: {loss}')
 
 with torch.no_grad():
     y_pred = model(X)
  
 accuracy = 100.00*(y_pred.round() == Y).float().mean()
-print(f"Accuracy {accuracy:.4f}%")
 
 predictions = (model(X) > 0.5).int()
 for i in range(5):
     print('%s => %d (expected %d)' % (X[i].tolist(), predictions[i], Y[i]))
+
+print(f"\nCompleted training simple NN model and predicting results with accuracy {accuracy:.4f}%")

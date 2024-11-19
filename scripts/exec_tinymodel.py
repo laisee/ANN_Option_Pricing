@@ -1,12 +1,12 @@
 import torch
-from scripts.tinymodel import TinyModel
+from models.tiny_model import TinyModel
 import warnings
 
 # Suppress FutureWarning from torch
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 tm = TinyModel()
-tm.load_state_dict(torch.load("tinymodel.pth"))
+tm.load_state_dict(torch.load("models/tinymodel.pth"))
 tm.eval()
 print(tm)
 

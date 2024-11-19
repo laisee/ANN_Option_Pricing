@@ -65,9 +65,9 @@ for type in ["call","put"]:
 
         with torch.no_grad():
             prediction = model(sample_input)
-        #print(f"ANN price: {prediction.item():.12f}")
+        print(f"ANN price: {prediction.item():.12f}")
         gap = bs_result-prediction.item()
-        #print(f"Gap: {gap:.12f} for {x}")
+        print(f"Gap: {gap:.12f} for {x}")
         if abs(gap) < min:
             min = abs(gap)
             factor = x

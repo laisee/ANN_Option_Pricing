@@ -95,5 +95,5 @@ def main():
     print(f"Root Mean Squared Error (RMSE): {rmse}")
 
 if __name__ == "__main__":
-    print("Running Correaltion ANN Model ...")
+    print("Running Correlation ANN Model ...")
     main()

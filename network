@@ -1,0 +1,74 @@
+digraph {
+	graph [size="12,12"]
+	node [align=left fontname=monospace fontsize=10 height=0.2 ranksep=0.1 shape=box style=filled]
+	4500389424 [label="
+ (1, 10)" fillcolor=darkolivegreen1]
+	4500644208 [label=LogSoftmaxBackward0]
+	4500643920 -> 4500644208
+	4500643920 [label=AddmmBackward0]
+	4500643776 -> 4500643920
+	4500388656 [label="fc2.bias
+ (10)" fillcolor=lightblue]
+	4500388656 -> 4500643776
+	4500643776 [label=AccumulateGrad]
+	4500643968 -> 4500643920
+	4500643968 [label=ReluBackward0]
+	4500643728 -> 4500643968
+	4500643728 [label=AddmmBackward0]
+	4500643392 -> 4500643728
+	4500388464 [label="fc1.bias
+ (50)" fillcolor=lightblue]
+	4500388464 -> 4500643392
+	4500643392 [label=AccumulateGrad]
+	4500643584 -> 4500643728
+	4500643584 [label=ViewBackward0]
+	4500643296 -> 4500643584
+	4500643296 [label=ReluBackward0]
+	4500643104 -> 4500643296
+	4500643104 [label=MaxPool2DWithIndicesBackward0]
+	4500642912 -> 4500643104
+	4500642912 [label=MulBackward0]
+	4500642816 -> 4500642912
+	4500642816 [label=ConvolutionBackward0]
+	4500642672 -> 4500642816
+	4500642672 [label=ReluBackward0]
+	4500644544 -> 4500642672
+	4500644544 [label=MaxPool2DWithIndicesBackward0]
+	4500644640 -> 4500644544
+	4500644640 [label=ConvolutionBackward0]
+	4500644736 -> 4500644640
+	4500387984 [label="conv1.weight
+ (10, 1, 5, 5)" fillcolor=lightblue]
+	4500387984 -> 4500644736
+	4500644736 [label=AccumulateGrad]
+	4500644688 -> 4500644640
+	4500388080 [label="conv1.bias
+ (10)" fillcolor=lightblue]
+	4500388080 -> 4500644688
+	4500644688 [label=AccumulateGrad]
+	4500642768 -> 4500642816
+	4500388176 [label="conv2.weight
+ (20, 10, 5, 5)" fillcolor=lightblue]
+	4500388176 -> 4500642768
+	4500642768 [label=AccumulateGrad]
+	4500643200 -> 4500642816
+	4500388272 [label="conv2.bias
+ (20)" fillcolor=lightblue]
+	4500388272 -> 4500643200
+	4500643200 [label=AccumulateGrad]
+	4500643632 -> 4500643728
+	4500643632 [label=TBackward0]
+	4500643056 -> 4500643632
+	4500388368 [label="fc1.weight
+ (50, 320)" fillcolor=lightblue]
+	4500388368 -> 4500643056
+	4500643056 [label=AccumulateGrad]
+	4500643824 -> 4500643920
+	4500643824 [label=TBackward0]
+	4500643152 -> 4500643824
+	4500388560 [label="fc2.weight
+ (10, 50)" fillcolor=lightblue]
+	4500388560 -> 4500643152
+	4500643152 [label=AccumulateGrad]
+	4500644208 -> 4500389424
+}

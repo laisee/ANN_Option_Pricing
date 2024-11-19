@@ -25,7 +25,6 @@ def heston_call_price(S0, K, r, T, kappa, theta, sigma, rho, v0):
    integral, _ = quad(integrand, 0, np.inf)
    return np.exp(-r * T) * 0.5 * S0 - np.exp(-r * T) / np.pi * integral
 
-
 def heston_put_price(S0, K, r, T, kappa, theta, sigma, rho, v0):
    integrand = lambda u: np.real(np.exp(-1j * u * np.log(K)) / (1j * u) * heston_characteristic_function(u - 1j, S0, K, r, T, kappa, theta, sigma, rho, v0))
    integral, _ = quad(integrand, 0, np.inf)
@@ -34,7 +33,6 @@ def heston_put_price(S0, K, r, T, kappa, theta, sigma, rho, v0):
 # Calculate call and put option prices
 call_price = heston_call_price(S0, K, r, T, kappa, theta, sigma, rho, v0)
 put_price = heston_put_price(S0, K, r, T, kappa, theta, sigma, rho, v0)
-
 
 print("European Call Option Price:", np.round(call_price, 2))
 print("European Put Option Price:", np.round(put_price, 2))

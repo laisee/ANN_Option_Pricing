@@ -153,7 +153,6 @@ def monte_carlo( asset_price, strike, risk_free_rate, volatility, maturity, opti
     option_price = np.exp(-risk_free_rate * maturity) * np.mean(payoffs)
     print(f"MC:Option Price: {option_price}")
     return option_price
-
 def heston_characteristic_function(u, S0, K, r, T, kappa, theta, sigma, rho, v0):
    xi = kappa - rho * sigma * 1j * u
    d = np.sqrt((rho * sigma * 1j * u - xi)**2 - sigma**2 * (-u * 1j - u**2))
@@ -161,27 +160,32 @@ def heston_characteristic_function(u, S0, K, r, T, kappa, theta, sigma, rho, v0)
    C = r * 1j * u * T + (kappa * theta) / sigma**2 * ((xi - rho * sigma * 1j * u - d) * T - 2 * np.log((1 - g * np.exp(-d * T)) / (1 - g)))
    D = (xi - rho * sigma * 1j * u - d) / sigma**2 * ((1 - np.exp(-d * T)) / (1 - g * np.exp(-d * T)))
    return np.exp(C + D * v0 + 1j * u * np.log(S0))
-
 # Define functions to compute call and put options prices
 def heston_call_price(S0, K, r, T, kappa, theta, sigma, rho, v0):
    integrand = lambda u: np.real(np.exp(-1j * u * np.log(K)) / (1j * u) * heston_characteristic_function(u - 1j, S0, K, r, T, kappa, theta, sigma, rho, v0))
    integral, _ = quad(integrand, 0, np.inf)
    return np.exp(-r * T) * 0.5 * S0 - np.exp(-r * T) / np.pi * integral
-
-
 def heston_put_price(S0, K, r, T, kappa, theta, sigma, rho, v0):
    integrand = lambda u: np.real(np.exp(-1j * u * np.log(K)) / (1j * u) * heston_characteristic_function(u - 1j, S0, K, r, T, kappa, theta, sigma, rho, v0))
    integral, _ = quad(integrand, 0, np.inf)
    return np.exp(-r * T) / np.pi * integral - S0 + K * np.exp(-r * T)
 
 date_conversion = {
-    "09-Nov-24": "20241109",
-    "10-Nov-24": "20241110",
     "11-Nov-24": "20241111",
+    "12-Nov-24": "20241112",
+    "13-Nov-24": "20241113",
+    "14-Nov-24": "20241114",
     "15-Nov-24": "20241115",
+    "16-Nov-24": "20241116",
+    "17-Nov-24": "20241117",
+    "18-Nov-24": "20241118",
+    "19-Nov-24": "20241119",
+    "20-Nov-24": "20241120",
+    "21-Nov-24": "20241121",
     "22-Nov-24": "20241122",
     "29-Nov-24": "20241129",
     "27-Dec-24": "20241227",
+    "06-Dec-24": "20241206",
     "28-Mar-25": "20250328",
     "27-Jun-25": "20250627",
     "28-Sep-25": "20250926"
@@ -196,15 +200,15 @@ def convert(coin, value, default=0.00):
         "BCH": 6,
         "BNB": 3,
         "BTC": 2,
-        "DOGE": 3,
+        "DOGE":3,
         "ETH": 3,
         "FIL": 4,
         "ICP": 2,
-        "LINK": 2,
-        "NEAR": 2,
-        "ORDI": 3,
+        "LINK":2,
+        "NEAR":2,
+        "ORDI":3,
         "SOL": 4,
-        "TON": 2,
+        "TON": 6,
         "XRP": 6
     }
     try:
@@ -260,7 +264,7 @@ with tabIV:
                 horizontal=True)
             expiry = st.radio(
                 "select Expiry", 
-                ["08-Nov-24", "09-Nov-24", "11-Nov-24", "15-Nov-24", "22-Nov-24", "27-Dec-24", "25-Mar-25", "27-Jun-25", "28-Sep-25"], 
+                ["12-Nov-24", "13-Nov-24", "14ov-24", "15-Nov-24", "22-Nov-24", "27-Dec-24", "25-Mar-25", "27-Jun-25", "28-Sep-25"], 
                 key='expiry',
                 on_change=update_selected_expiry,
                 horizontal=False)
@@ -297,11 +301,11 @@ with tabPrice:
             model_type = st.radio("Select Model", ["BinomialTree", "BlackScholes", "Heston", "NeuralNetBS"], horizontal=False)
         with colInput:
             st.write("\n")
-            spot_price = st.slider("Input Spot Price",0.10, 100.00, 5.0,0.1)
-            strike = st.slider("Input Strike",0.10, 100.00, 5.00, 0.1)
+            spot_price = st.slider("Input Spot Price",1000.00, 10000.00, 3100.0, 100.00)
+            strike = st.slider("Input Strike",1000.00, 10000.00, 3000.00, 100.00)
             volatility = st.slider("Input Volatility",5.00, 100.00, 20.00, 1.0)
             riskfree = st.slider("Input Riskfree Rate",1.0, 10.00, 0.05, 0.1)
-            maturity = st.slider("Select months till maturity",1, 18, 12, 1)
+            maturity = st.slider("Select months till maturity",1, 18, 3, 1)
         with colSpacer:
             st.write("")
         with colCalc:
@@ -373,7 +377,7 @@ with tabPrice:
                         option_price = heston_put_price(spot_price, strike, riskfree, maturity, kappa, theta, sigma, rho, v0)
                         print(f"Heston/Put: {option_price}")
                 elif model_type.lower() == "neuralnetbs":
-                    q = float(randint(1,10)/10.00)
+                    q = 0.00
                     # Set the model to evaluation mode
                     model.eval()
 
@@ -388,9 +392,6 @@ with tabPrice:
                     #t   = inputs[1]      # tau
                     #r   = RATE           # risk-free rate
                     #vol = inputs[3]      # vol
-
-                    #bs_result = black_scholes(S, strike, t, r, vol, type)
-                    #print(f"BS price: {bs_result:.12f}")
 
                     with torch.no_grad():
                         option_price = model(sample_input).item()
