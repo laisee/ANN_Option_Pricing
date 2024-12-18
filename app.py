@@ -1,12 +1,14 @@
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 import numpy as np
+import pytz
 from random import randint
 import torch
 import json
 import redis
 import pandas as pd
 import datetime as dt
+from datetime import datetime, timedelta
 import os
 from scipy.integrate import quad
 from dotenv import load_dotenv
@@ -20,7 +22,7 @@ sigma = 0.3   # Volatility of volatility
 rho = -0.5    # Correlation coefficient
 v0 = 0.05     # Initial volatility
 
-COINS = ["ADA", "ARB", "BTC", "DOGE", "DOT", "ETH", "SOL", "TON", "TRX10000", "XRP"]
+COINS = ["ADA", "ARB", "BTC","BNB", "DOGE", "DOT", "ETH", "SOL", "TON", "TRX10000", "XRP"]
 # Set the interval in milliseconds (e.g., 2000 ms = 2 seconds)
 st.set_page_config(page_title='NN OptionPricer', layout="wide")
 st_autorefresh(interval=75000, key="auto_refresh")
@@ -42,7 +44,6 @@ if 'results' not in st.session_state:
     st.session_state.results = pd.DataFrame()
 
 load_dotenv()
-
 def get_redis_connection(host: str, pwd: str, port: int):
     return redis.Redis(host=host, port=port, password=pwd, db=0, socket_timeout=5, decode_responses=True )
 def get_quotes(pattern: str, coin: str, count: int = 100) -> dict:
@@ -150,7 +151,7 @@ def monte_carlo( asset_price, strike, risk_free_rate, volatility, maturity, opti
     print(f"MC:Payoffs: {payoffs}")
 
     # Discount the expected payoff back to present value
-    option_price = np.exp(-risk_free_rate * maturity) * np.mean(payoffs)
+    option_price = np.exp(-risk_free_rate * maturity) * np.mean(payoffs)/1000000.00
     print(f"MC:Option Price: {option_price}")
     return option_price
 def heston_characteristic_function(u, S0, K, r, T, kappa, theta, sigma, rho, v0):
@@ -169,31 +170,34 @@ def heston_put_price(S0, K, r, T, kappa, theta, sigma, rho, v0):
    integrand = lambda u: np.real(np.exp(-1j * u * np.log(K)) / (1j * u) * heston_characteristic_function(u - 1j, S0, K, r, T, kappa, theta, sigma, rho, v0))
    integral, _ = quad(integrand, 0, np.inf)
    return np.exp(-r * T) / np.pi * integral - S0 + K * np.exp(-r * T)
+# Function to generate date conversion dictionary
+def generate_date_conversion(start_date: datetime, total_days: int):
+    date_conversion = {}
+    for day in range(total_days):
+        # Calculate the new date
+        new_date = start_date + timedelta(days=day)
 
-date_conversion = {
-    "11-Nov-24": "20241111",
-    "12-Nov-24": "20241112",
-    "13-Nov-24": "20241113",
-    "14-Nov-24": "20241114",
-    "15-Nov-24": "20241115",
-    "16-Nov-24": "20241116",
-    "17-Nov-24": "20241117",
-    "18-Nov-24": "20241118",
-    "19-Nov-24": "20241119",
-    "20-Nov-24": "20241120",
-    "21-Nov-24": "20241121",
-    "22-Nov-24": "20241122",
-    "29-Nov-24": "20241129",
-    "27-Dec-24": "20241227",
-    "06-Dec-24": "20241206",
-    "28-Mar-25": "20250328",
-    "27-Jun-25": "20250627",
-    "28-Sep-25": "20250926"
-}
+        # Format the date in required formats
+        formatted_date_key = new_date.strftime("%d-%b-%y")  # e.g., "13-Dec-24"
+        formatted_date_value = new_date.strftime("%Y%m%d")  # e.g., "20241213"
+
+        # Add to dictionary
+        date_conversion[formatted_date_key] = formatted_date_value
+
+    return date_conversion
+
+# Current UTC date as starting point
+starting_date = datetime.now(pytz.UTC)
+
+# Define total number of days for daily records
+total_days = 180
+
+# Generate date conversion dictionary
+date_conversion = generate_date_conversion(starting_date, total_days)
+
 st.markdown("<span style='font-size: 36px'>Power.Trade - Option Pricer</span>", unsafe_allow_html=True)
 st.write("\n")
 status_placeholder = st.empty()
-
 tabIV, tabPrice = st.tabs(["Implied Vol","Price"])
 def convert(coin, value, default=0.00):
     precision = {
@@ -264,7 +268,7 @@ with tabIV:
                 horizontal=True)
             expiry = st.radio(
                 "select Expiry", 
-                ["12-Nov-24", "13-Nov-24", "14ov-24", "15-Nov-24", "22-Nov-24", "27-Dec-24", "25-Mar-25", "27-Jun-25", "28-Sep-25"], 
+                ["18-Dec-24","19-Dec-24", "20-Dec-24", "27-Dec-24","03-Jan-25","31-Jan-24","28-Feb-25", "25-Mar-25", "27-Jun-25", "28-Sep-25"], 
                 key='expiry',
                 on_change=update_selected_expiry,
                 horizontal=False)
@@ -298,14 +302,14 @@ with tabPrice:
             option_type = st.radio("Select Option Type", ["Call", "Put"], horizontal=True)
             exercise_type = st.radio("Select Exercise Type", ["European", "American"], horizontal=True, disabled=True)
             st.write("\n")
-            model_type = st.radio("Select Model", ["BinomialTree", "BlackScholes", "Heston", "NeuralNetBS"], horizontal=False)
+            model_type = st.radio("Select Model", ["BinomialTree", "BlackScholes", "Heston","MonteCarlo", "NeuralNetBS"], horizontal=False)
         with colInput:
             st.write("\n")
-            spot_price = st.slider("Input Spot Price",1000.00, 10000.00, 3100.0, 100.00)
-            strike = st.slider("Input Strike",1000.00, 10000.00, 3000.00, 100.00)
-            volatility = st.slider("Input Volatility",5.00, 100.00, 20.00, 1.0)
+            spot_price = st.slider("Input Spot Price",0.10, 110000.00, 100.0, 0.1)
+            strike = st.slider("Input Strike",0.10, 110000.00, 100.00, 0.10)
+            volatility = st.slider("Input Volatility",5.00, 250.00, 20.00, 1.0)
             riskfree = st.slider("Input Riskfree Rate",1.0, 10.00, 0.05, 0.1)
-            maturity = st.slider("Select months till maturity",1, 18, 3, 1)
+            maturity = st.slider("Select months till maturity",1, 18, 1, 1)
         with colSpacer:
             st.write("")
         with colCalc:
@@ -388,7 +392,7 @@ with tabPrice:
                     sample_input = torch.tensor([inputs])
 
                     #S   = inputs[0]      # stock price
-                    #K   = inputs[0] # strike
+                    #K   = inputs[0]      # strike
                     #t   = inputs[1]      # tau
                     #r   = RATE           # risk-free rate
                     #vol = inputs[3]      # vol

@@ -8,11 +8,11 @@ stop:
 	heroku stop dyno -a pt-neuralnet-pricing
 exec_tiny:
 	python3 scripts/exec_tinymodel.py
-run_bs:
-	python3 scripts/run_bs.py
-run_heston:
+run_bs_calc:
+	python3 scripts/run_bs_calc.py
+run_heston_calc:
 	python3 scripts/calc_heston.py
-run_heston2:
+run_heston2_calc:
 	python3 scripts/calc_heston2.py
 run_gradient_calc:
 	python3 scripts/run_gradient_calc.py

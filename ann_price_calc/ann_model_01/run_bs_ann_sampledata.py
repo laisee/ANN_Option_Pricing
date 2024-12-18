@@ -121,8 +121,6 @@ def create_nn_model(dim: int):
         Dropout(0.25),
         Dense(1)
     ])
-    model.compile(optimizer="adam", loss="mse")
-
     model.add(Dense(NODES, input_dim=dim))
     model.add(LeakyReLU())
     model.add(Dropout(0.25))
@@ -141,7 +139,7 @@ def create_nn_model(dim: int):
     #
     # Compile and build model
     #           
-    model.compile(loss='mse',optimizer='rmsprop')
+    model.compile(loss='mse',optimizer='adam')
     return model
 
 def price(
@@ -169,12 +167,12 @@ def main():
 
     print("generating random data")
     n_samples = SAMPLE_SIZE
-    asset_prices = np.random.uniform(0.01, 75000.00, n_samples)   # Stock price between 0.01 and 75000.00
-    strike_prices = np.random.uniform(0.01, 75000.00, n_samples)  # Strike price between 0.01 and 75000.00
+    asset_prices = np.random.uniform(0.01, 95000.00, n_samples)   # Stock price between 0.01 and 75000.00
+    strike_prices = np.random.uniform(1.00, 95000.00, n_samples)  # Strike price between 0.01 and 75000.00
     time_to_expiry = np.random.uniform(0.1, 2, n_samples)  # Expiry between 0.1 and 2 years
-    dividends = np.random.uniform(0, 0.00, n_samples)      # Dividend yield between 0 and 3%
+    dividends = np.random.uniform(0, 0.01, n_samples)      # Dividend yield between 0 and 3%
     volatility = np.random.uniform(0.01, 1.5, n_samples)   # Volatility between 1% and 150%
-    rates = np.random.uniform(0.05, 0.05, n_samples)       # Risk-free rate between 1% and 5%
+    rates = np.random.uniform(0.01, 0.05, n_samples)       # Risk-free rate between 1% and 5%
 
     print("calculate option prices")
     #
@@ -279,7 +277,7 @@ def main():
     #
     # Display charts (accuracy, pde)
     #
-    #show_charts(Y_train_scaled, Y_train_hat, stats)
+    show_charts(Y_train_scaled, Y_train_hat, stats)
 
 if __name__ == "__main__":
     print("Running BS ANN(sample data) ...")
