@@ -2,6 +2,11 @@ from torch import nn
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
+import os
+import sys
+
+parent_dir = os.path.dirname(os.path.dirname(__file__))
+sys.path.insert(0, parent_dir)
 
 class BlackScholes_ANN(nn.Module):
   def __init__(self):
@@ -32,8 +37,9 @@ class BlackScholes_ANN(nn.Module):
       if isinstance(module, nn.Linear):
         nn.init.xavier_uniform_(module.weight)
 
+WEIGHTS_FILE = "models/bs_model_weights.pth"
 model = BlackScholes_ANN()
-model.load_state_dict(torch.load('bs_model_weights.pth',weights_only=True))
+model.load_state_dict(torch.load(WEIGHTS_FILE,weights_only=True))
 model.eval()
 
 print(model)
