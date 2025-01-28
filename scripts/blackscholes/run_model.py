@@ -128,8 +128,8 @@ def run_bs_compare():
 
     inputs = torch.tensor(inputs).type(torch.float)
 
-    real = BS(S,K,tau,r,sigma)
-    model = BS_ANN(inputs).detach().numpy()
+    real = bs(S,K,tau,r,sigma)
+    model = BlackScholes_ANN(inputs).detach().numpy()
     plt.plot(K,real,'r',label="Real BS function")
     plt.plot(K,model,'b',linestyle='dashed',label="BS-ANN")
     plt.xlabel("Strike K")
