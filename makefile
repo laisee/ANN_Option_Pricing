@@ -5,7 +5,7 @@ release:
 restart:
 	heroku restart -a pt-neuralnet-pricing
 stop:
-	heroku stop dyno -a pt-neuralnet-pricing
+	heroku stop --dyno-name web -a pt-neuralnet-pricing
 exec_tiny:
 	python3 scripts/exec_tinymodel.py
 run_bs_calc:

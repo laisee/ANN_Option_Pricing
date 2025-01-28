@@ -1,13 +1,17 @@
-[tool.poetry]
+[project]
 name = "ann-price-calc"
 version = "0.1.0"
 description = ""
-authors = ["villa.straylite@proton.me"]
+authors = [{name = "Villa Straylight", email = "villa.straylite@proton.me"}]
 license = "MIT"
 readme = "README.md"
-package-mode = false
 
-[tool.poetry.dependencies]
+[project.scripts]
+run-ann-model-01 = "ann_price_calc.ann_model_01.run_bs_ann_sampledata:main"
+run-ann-model-02 = "ann_price_calc.ann_model_02.run_model:main"
+run-ann-model-03 = "ann_price_calc.correlation.run_model:main"
+
+[poetry.dependencies]
 python = "^3.11"
 matplotlib = "^3.9.2"
 numpy = ">=1.26.0,<2.1.0"
@@ -19,15 +23,10 @@ tensorflow = "2.18.0"
 psutil = "^6.1.0"
 scikit-learn = "^1.5.2"
 
-[tool.poetry.dev-dependencies]
+[poetry.group.dev.dependencies]
 scipy = "^1.14.1"
-keras = "^3.6.0"
+keras = "^3.8.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-run-ann-model-01 = "ann_price_calc.ann_model_01.run_bs_ann_sampledata:main"
-run-ann-model-02 = "ann_price_calc.ann_model_02.run_model:main"
-run-ann-model-03 = "ann_price_calc.correlation.run_model:main"

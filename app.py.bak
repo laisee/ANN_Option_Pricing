@@ -244,6 +244,44 @@ def update_selected_expiry():
     st.session_state.text = f"You selected: {st.session_state.expiry} with coin '{st.session_state.coin}'" if st.session_state.coin is not None else  f"You selected: {st.session_state.expiry}" 
     print(f"selected expiry: {st.session_state.expiry}")
     getMarketPrice(st.session_state.coin,  st.session_state.expiry)
+with tabIV:
+    colInput, colSpacer, colResults = st.columns([0.30,0.05,0.65])
+    with st.container():
+        st.markdown(
+            """
+            <style>
+            .main > div {
+                max-width: 80%;
+                margin: auto;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        ) 
+        with colInput:
+            st.write("\n")
+            coin = st.radio(
+                "select Coin", 
+                COINS,
+                key='coin',
+                on_change=update_selected_coin,
+                horizontal=True)
+            expiry = st.radio(
+                "select Expiry", 
+                ["18-Dec-24","19-Dec-24", "20-Dec-24", "27-Dec-24","03-Jan-25","31-Jan-24","28-Feb-25", "25-Mar-25", "27-Jun-25", "28-Sep-25"], 
+                key='expiry',
+                on_change=update_selected_expiry,
+                horizontal=False)
+        with colSpacer:
+            st.write("\n")
+        with colResults:
+            st.write("\n")
+            st.text_input(
+                '...',
+                value=st.session_state.text,
+                key="text"
+            )
+            st.dataframe(st.session_state.results, hide_index=True, column_order=["type","strike","symbol","bid", "ask"], use_container_width=True)
 with tabPrice:
     colSetting, colInput, colSpacer, colCalc = st.columns([0.30, 0.20, 0.10, 0.45])
     st.markdown(
