@@ -1,5 +1,11 @@
 import torch
 import os
+import sys
+
+parent_dir = os.path.dirname(os.path.dirname(__file__))
+sys.path.insert(0, parent_dir)
+print(f"Adding {parent_dir} to sys.path")
+
 from models.heston import Heston_ANN, Heston as heston
 
 print("loading Heston ANN model")
