@@ -1,17 +1,14 @@
 from tqdm import tqdm
 import numpy as np
-from scipy.stats import norm
 
-from models.heston import Heston_ANN, Heston_2, heston_implied_vol_, heston_implied_vol
+from models.heston import Heston_2
 from models.blackscholes import bs, BlackScholes_ANN, train_loop
-from utils import truncation
 
 from smt.sampling_methods import LHS
 import torch
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 import matplotlib.pyplot as plt
-import plotly.express as px
 
 #
 # Model settings
@@ -27,8 +24,6 @@ def run_bs():
     print("Executing Black Scholes ANN ...")
 
     S = 100
-    L = 50
-    N = 1500
 
     # Latin Hypercube Sampling for the B-S model
     M_BS = [0.4,1.6] # moneyness = S0/K
@@ -89,7 +84,7 @@ def run_bs():
     plt.legend()
     #plt.show()
 
-    print(f"calculating BS using generated training model")
+    print("calculating BS using generated training model")
     S = 100                         # Strike
     K = np.arange(25,990,1)
     tau = 1

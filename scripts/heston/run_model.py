@@ -1,17 +1,18 @@
+import torch
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 import numpy as np
-from scipy.stats import norm
+import sys
+import os
 
-from models.heston import Heston_ANN, Heston_2, heston_implied_vol_, heston_implied_vol
+parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, parent_dir)
+
+from models.heston import Heston_2
 from models.blackscholes import bs, BlackScholes_ANN, train_loop
-from utils import truncation
-
 from smt.sampling_methods import LHS
-import torch
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
-import matplotlib.pyplot as plt
-import plotly.express as px
 
 #
 # Model settings
@@ -27,8 +28,6 @@ def run_bs():
     print("Running Black Scholes ANN ...")
 
     S = 100
-    L = 50
-    N = 1500
 
     # Latin Hypercube Sampling for the B-S model
     M_BS = [0.4,1.6] # moneyness = S0/K
@@ -91,7 +90,7 @@ def run_bs():
     plt.legend()
     #plt.show()
 
-    print(f"calculating BS using generated training model")
+    print("calculating BS using generated training model")
     S = 100                         # Strike
     K = np.arange(25,990,1)
     tau = 1
@@ -103,8 +102,8 @@ def run_bs():
         inputs[i,:] = [S/K[i],tau,r,sigma]
     inputs = torch.tensor(inputs).type(torch.float)
     real = bs(S,K,tau,r,sigma)
-    result = BS_ANN(inputs).detach()
-    torch.save(BS_ANN.state_dict(), 'bs_model_weights.pth')
+    result = BlackScholes_ANN(inputs).detach()
+    torch.save(BlackScholes_ANN.state_dict(), 'bs_model_weights.pth')
 
     plt.plot(K,real,'r',label="Real BS function")
     plt.plot(K,result,'b',linestyle='dashed',label="BS-ANN")
@@ -129,8 +128,8 @@ def run_bs_compare():
 
     inputs = torch.tensor(inputs).type(torch.float)
 
-    real = BS(S,K,tau,r,sigma)
-    model = BS_ANN(inputs).detach().numpy()
+    real = bs(S,K,tau,r,sigma)
+    model = BlackScholes_ANN(inputs).detach().numpy()
     plt.plot(K,real,'r',label="Real BS function")
     plt.plot(K,model,'b',linestyle='dashed',label="BS-ANN")
     plt.xlabel("Strike K")

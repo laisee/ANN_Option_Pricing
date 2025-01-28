@@ -1,7 +1,5 @@
 import torch
-import numpy as np
 import os
-from scipy.stats import norm
 from models.heston import Heston_ANN, Heston as heston
 
 print("loading Heston ANN model")

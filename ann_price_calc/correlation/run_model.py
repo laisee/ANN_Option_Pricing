@@ -4,7 +4,6 @@ import numpy as np
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 from torch.optim import Adam
-import torch.nn.functional as F
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 

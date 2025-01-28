@@ -2,7 +2,6 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 import numpy as np
 import pytz
-from random import randint
 import torch
 import json
 import redis
@@ -163,11 +162,13 @@ def heston_characteristic_function(u, S0, K, r, T, kappa, theta, sigma, rho, v0)
    return np.exp(C + D * v0 + 1j * u * np.log(S0))
 # Define functions to compute call and put options prices
 def heston_call_price(S0, K, r, T, kappa, theta, sigma, rho, v0):
-   integrand = lambda u: np.real(np.exp(-1j * u * np.log(K)) / (1j * u) * heston_characteristic_function(u - 1j, S0, K, r, T, kappa, theta, sigma, rho, v0))
+   def integrand(u):
+       return np.real(np.exp(-1j * u * np.log(K)) / (1j * u) * heston_characteristic_function(u - 1j, S0, K, r, T, kappa, theta, sigma, rho, v0))
    integral, _ = quad(integrand, 0, np.inf)
    return np.exp(-r * T) * 0.5 * S0 - np.exp(-r * T) / np.pi * integral
 def heston_put_price(S0, K, r, T, kappa, theta, sigma, rho, v0):
-   integrand = lambda u: np.real(np.exp(-1j * u * np.log(K)) / (1j * u) * heston_characteristic_function(u - 1j, S0, K, r, T, kappa, theta, sigma, rho, v0))
+   def integrand(u):
+       return np.real(np.exp(-1j * u * np.log(K)) / (1j * u) * heston_characteristic_function(u - 1j, S0, K, r, T, kappa, theta, sigma, rho, v0))
    integral, _ = quad(integrand, 0, np.inf)
    return np.exp(-r * T) / np.pi * integral - S0 + K * np.exp(-r * T)
 # Function to generate date conversion dictionary

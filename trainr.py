@@ -1,10 +1,8 @@
 from datetime import datetime
 import pandas as pd
 import numpy as np
-import torch
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Input, LeakyReLU  # LeakyReLU directly in keras.layers
-from keras.utils import to_categorical
 from keras.optimizers import Adam, RMSprop
 from scipy.stats import norm
 import tensorflow as tf
@@ -100,7 +98,7 @@ def create_nn_model(dim: int):
         Dropout(0.25),                   # Dropout for regularization
         Dense(1)                         # Output layer with one unit (for regression)
     ])
-    adam_opt = Adam(learning_rate=0.0001)  # Example: Using 0.001 as the learning rate
+    Adam(learning_rate=0.0001)  # Example: Using 0.001 as the learning rate
     rms_opt  = RMSprop(learning_rate=0.0001)  # Example: Using 0.001 as the learning rate
 
     model.add(Dense(NODES, input_dim=dim))
@@ -206,8 +204,8 @@ def main():
     X_test = test[['index_price', 'strike', 'maturity', 'iv', 'rate']].values
     Y_test = test['price'].values
     Y_test = Y_test.reshape(-1, 1)
-    X_test_scaled = scaler.fit_transform(X_test)
-    Y_test_scaled = scaler.fit_transform(Y_test)
+    scaler.fit_transform(X_test)
+    scaler.fit_transform(Y_test)
 
     #
     # generate ANN model with an Input layer

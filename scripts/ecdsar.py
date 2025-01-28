@@ -1,4 +1,4 @@
-from ecdsa import VerifyingKey, SigningKey
+from ecdsa import SigningKey
 from ecdsa.util import sigencode_der
 import ecdsa
 

@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from models.heston import Heston_ANN as Hest_ANN
 from models.heston import Heston as Heston
 from models.heston import Heston_2 as Heston2
 from smt.sampling_methods import LHS
@@ -35,9 +34,9 @@ for i in range(num_H):
     print(f"generated price {price} ... ")
     labeled_H[i,:] = [m,tau,mrs,r,volvol,v_bar,rho,sigma,price]
 
-print(f"completed price calc ... ")
+print("completed price calc ... ")
 heston_data = torch.tensor(labeled_H).type(torch.float)
-print(f"saving heston model ... ")
+print("saving heston model ... ")
 torch.save(heston_data, 'models/heston_data.pt')
-print(f"saved heston model ... ")
+print("saved heston model ... ")
 print("completed heston model calcs")

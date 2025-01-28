@@ -1,12 +1,10 @@
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Input, LeakyReLU  # LeakyReLU directly in keras.layers
-from keras.utils import to_categorical
 import numpy as np
 import pandas as pd
 from scipy.stats import norm
 import tensorflow as tf
 import psutil
-from blackscholes import BlackScholesCall, BlackScholesPut
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -36,7 +34,7 @@ def checkAccuracy(y,y_hat):
     try:
         stats = dict()
         try:
-            print(f"Calc y - y_hat")
+            print("Calc y - y_hat")
             print(f"1Memory usage before calculation: {psutil.virtual_memory().used / (1024 ** 3):.2f} GB")
  
             y = np.ravel(y)
@@ -51,7 +49,7 @@ def checkAccuracy(y,y_hat):
 
             # Store the 'diff' column in the stats dictionary
             stats['diff'] = data['diff']
-            print(f"Calc'd y - y_hat")
+            print("Calc'd y - y_hat")
             print(f"1Memory usage after assigning 'diff' to stats: {psutil.virtual_memory().used / (1024 ** 3):.2f} GB")
 
             print(f"2Memory usage before calculation: {psutil.virtual_memory().used / (1024 ** 3):.2f} GB")
@@ -234,8 +232,8 @@ def main():
     X_test = test[['asset_price', 'strike', 'expiry', 'dividends', 'volatility', 'rate']].values
     Y_test = test['option_price'].values
     Y_test = Y_test.reshape(-1, 1)
-    X_test_scaled = scaler.fit_transform(X_test)
-    Y_test_scaled = scaler.fit_transform(Y_test)
+    scaler.fit_transform(X_test)
+    scaler.fit_transform(Y_test)
 
     # Check if X_train is a numpy array
     #if isinstance(X_test_scaled, np.ndarray):

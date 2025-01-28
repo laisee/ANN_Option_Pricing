@@ -2,13 +2,11 @@ from tqdm import tqdm
 import numpy as np
 from scipy.stats import norm
 from scipy import optimize
-import smt
 from smt.sampling_methods import LHS
 import torch
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 import matplotlib.pyplot as plt
-import plotly.express as px
 
 def train_loop(dataloader, model, loss_fn, optimizer):
   for batch, (X,y) in enumerate(dataloader):
@@ -141,7 +139,8 @@ def implied_vol_(S,K,tau,mrs,r,volvol,v_bar,rho,sigma,L,N,a,b):
   '''
   Finds the B-S implied volatility using Heston otpions price as the "market price" and using Brent's root finding method from scipy.optimize
   '''
-  g = lambda x : BS(S,K,tau,r,x)*K - Heston_2(S,K,tau,mrs,r,volvol,v_bar,rho,sigma,L,N)
+  def g(x):
+    return BS(S,K,tau,r,x)*K - Heston_2(S,K,tau,mrs,r,volvol,v_bar,rho,sigma,L,N)
   root = optimize.brentq(g, a, b)
   return root
 
@@ -151,7 +150,8 @@ def implied_vol(S,K,tau,r,Heston_price):
   '''
   a = -3
   b = 5
-  g = lambda x : BS(S,K,tau,r,x)*K - Heston_price
+  def g(x):
+    return BS(S,K,tau,r,x)*K - Heston_price
   root = optimize.brentq(g, a, b)
   return root
 

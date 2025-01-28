@@ -1,26 +1,9 @@
-import math
-import pandas as pd
-import datetime, os
 import numpy as np
-import numpy.random as npr
-from pylab import plt, mpl
 
-import threading
 
-from scipy.stats import norm
-from scipy import optimize
 import scipy.integrate as integrate
-import scipy.special as special 
 
-import tensorflow as tf
-from tensorflow.keras.callbacks import EarlyStopping, TensorBoard
-from tensorflow import keras
-from sklearn.model_selection import train_test_split
-from sklearn import preprocessing
-from sklearn.preprocessing import StandardScaler
 
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 def heston_call(S, K, tau, r, kappa, theta, sigma, rho, nu, limit):
     X = np.log(S / K)
