@@ -1,4 +1,6 @@
-# ANN_Option_Pricing
+[![Python App](https://github.com/laisee/ANN_Option_Pricing/actions/workflows/python-app.yml/badge.svg)](https://github.com/laisee/ANN_Option_Pricing/actions/workflows/python-app.yml)
+
+# ANN OptionPricing
 Calculating Option prices with Deep Neural networks(PyTorch)
 
 ### Based on these sets of code and papers (and others)
