@@ -1,14 +1,19 @@
-from tqdm import tqdm
+import matplotlib.pyplot as plt
 import numpy as np
+import os
+import sys
+import torch
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, parent_dir)
+
+from tqdm import tqdm
+from smt.sampling_methods import LHS
+from torch import nn
+from torch.utils.data import TensorDataset, DataLoader
 
 from models.heston import Heston_2
 from models.blackscholes import bs, BlackScholes_ANN, train_loop
-
-from smt.sampling_methods import LHS
-import torch
-from torch import nn
-from torch.utils.data import TensorDataset, DataLoader
-import matplotlib.pyplot as plt
 
 #
 # Model settings

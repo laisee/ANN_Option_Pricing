@@ -1,5 +1,11 @@
 import numpy as np
 import torch
+import sys
+import os
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, parent_dir)
+
 from models.heston import Heston as Heston
 from models.heston import Heston_2 as Heston2
 from smt.sampling_methods import LHS

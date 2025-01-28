@@ -54,6 +54,7 @@ t        = inputs[1]      # tau
 r        = RATE           # risk-free rate
 vol      = inputs[3]      # vol
 q        = inputs[2]      # dividends
+factor   = 0
 
 for type in ["call","put"]:
     print(f"\n\nType: {type}")
