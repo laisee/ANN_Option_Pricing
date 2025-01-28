@@ -1,12 +1,20 @@
-from tqdm import tqdm
+import matplotlib.pyplot as plt
 import numpy as np
+import sys
+import os
+import torch
+
+from tqdm import tqdm
 from scipy.stats import norm
 from scipy import optimize
 from smt.sampling_methods import LHS
-import torch
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
-import matplotlib.pyplot as plt
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, parent_dir)
+
+from models.heston import Heston_2
 
 def train_loop(dataloader, model, loss_fn, optimizer):
   for batch, (X,y) in enumerate(dataloader):
