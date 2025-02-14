@@ -199,7 +199,7 @@ date_conversion = generate_date_conversion(starting_date, total_days)
 st.markdown("<span style='font-size: 36px'>Power.Trade - Option Pricer</span>", unsafe_allow_html=True)
 st.write("\n")
 status_placeholder = st.empty()
-tabIV, tabPrice = st.tabs(["Implied Vol","Price"])
+tabPrice = st.tabs(["Price"])[0]
 def convert(coin, value, default=0.00):
     precision = {
         "BCH": 6,
@@ -236,6 +236,7 @@ def getMarketPrice(coin: str, expiry: str):
         sorted_data = pd.DataFrame()
     st.session_state.results = sorted_data
     st.session_state.text = "updated @ ts = " + str(dt.datetime.now(dt.UTC))
+
 # Define a callback function to update the text input based on radio selection
 def update_selected_coin():
     st.session_state.text = f"You selected: {st.session_state.coin} with expiry '{st.session_state.expiry}'" if st.session_state.expiry is not None else  f"You selected: {st.session_state.coin}" 
@@ -245,6 +246,7 @@ def update_selected_expiry():
     st.session_state.text = f"You selected: {st.session_state.expiry} with coin '{st.session_state.coin}'" if st.session_state.coin is not None else  f"You selected: {st.session_state.expiry}" 
     print(f"selected expiry: {st.session_state.expiry}")
     getMarketPrice(st.session_state.coin,  st.session_state.expiry)
+
 with tabPrice:
     colSetting, colInput, colSpacer, colCalc = st.columns([0.30, 0.20, 0.10, 0.45])
     st.markdown(
