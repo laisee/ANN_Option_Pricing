@@ -3,7 +3,7 @@
 # ANN OptionPricing
 Calculating Option prices with Deep Neural networks(PyTorch)
 
-### Based on these sets of code and papers (and others)
+### Based on following code and papers (plus others)
 
 * https://github.com/abbkey/pricing-options-pytorch
 * https://srdas.github.io/DLBook/index.html
