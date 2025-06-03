@@ -12,8 +12,8 @@ from smt.sampling_methods import LHS
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 
-from models.heston import Heston_2
-from models.blackscholes import bs, BlackScholes_ANN, train_loop
+from models.heston.heston import Heston_2
+from models.blackscholes.blackscholes import bs, BlackScholes_ANN, train_loop
 
 #
 # Model settings

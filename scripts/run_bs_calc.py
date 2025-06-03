@@ -4,7 +4,7 @@ import os
 parent_dir = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, parent_dir)
 
-from models.blackscholes import bs as BS
+from models.blackscholes.blackscholes import bs as BS
 
 S = 1000.0  # Asset price
 K = 1000.0  # Strike price

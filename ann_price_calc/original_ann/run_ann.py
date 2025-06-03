@@ -14,7 +14,7 @@ from torch.utils.data import TensorDataset, DataLoader
 parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.insert(0, parent_dir)
 
-from models.heston import Heston_2
+from models.heston.heston import Heston_2
 
 def train_loop(dataloader, model, loss_fn, optimizer):
   for batch, (X,y) in enumerate(dataloader):

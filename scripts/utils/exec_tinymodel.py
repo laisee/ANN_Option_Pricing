@@ -1,9 +1,16 @@
+import os
+import sys
 import torch
-from models.tiny_model import TinyModel
 import warnings
 
 # Suppress FutureWarning from torch
 warnings.filterwarnings("ignore", category=FutureWarning)
+
+# Add the project root directory to the Python path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, project_root)
+
+from models.tiny.tiny_model import TinyModel
 
 tm = TinyModel()
 tm.load_state_dict(torch.load("models/tinymodel.pth"))

@@ -8,8 +8,8 @@ import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.insert(0, parent_dir)
 
-from models.heston import Heston_2
-from models.blackscholes import bs, BlackScholes_ANN, train_loop
+from models.heston.heston import Heston_2
+from models.blackscholes.blackscholes import bs, BlackScholes_ANN, train_loop
 from smt.sampling_methods import LHS
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader

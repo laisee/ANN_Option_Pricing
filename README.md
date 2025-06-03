@@ -1,43 +1,236 @@
-[![Python App](https://github.com/laisee/ANN_Option_Pricing/actions/workflows/python-app.yml/badge.svg)](https://github.com/laisee/ANN_Option_Pricing/actions/workflows/python-app.yml)
+# Option Pricing Web Application
 
-# ANN OptionPricing
-Calculating Option prices with Deep Neural networks(PyTorch)
+## Project Goals
 
-### Based on following code and papers (plus others)
+This project provides a comprehensive platform for option pricing using various mathematical models and machine learning techniques. The key objectives are:
 
-* https://github.com/abbkey/pricing-options-pytorch
-* https://srdas.github.io/DLBook/index.html
+1. Implement multiple option pricing models:
+   - Black-Scholes model (analytical solution)
+   - Binomial Tree model (discrete-time approximation)
+   - Heston model (stochastic volatility)
+   - Neural Network models (machine learning approach)
 
-* https://arxiv.org/pdf/1901.08943
-* https://cs230.stanford.edu/projects_fall_2019/reports/26260984.pdf
-* https://github.com/abbkey/pricing-options-pytorch/blob/main/Report.pdf
+2. Provide an interactive web interface for option pricing calculations
 
-Sample code showing Options pricing
-* https://pt-options-pricer-d878fbfe127c.herokuapp.com
+3. Demonstrate how neural networks can approximate complex financial models
 
-#### 1. Calculating BS price using ANN trained on generated sample data
+4. Enable comparison between different pricing methodologies
 
- - Open terminal app on Mac OSX
- - Download code from this github repo(https://github.com/laisee/ANN_Option_Pricing)
- - Run "pip install -r requirements.txt" to install python tools needed
- - Run "python3 ann_model_01/run_bs_all_sampledata.py"
- - Click on 1st displayed chart to view next one
- - Click on 2nd displayed chart to complete the runnd other metrics for accuracy will be displayed at console
- - Inside the code ("scripts/run_bs_ann_sampledata.py") settings can be updated, such as 
-    - SAMPLE_SIZE: number of sample records to generate for training set
-    - TRAINING_TESTING_RATIO: split between training & testing data sets e.g. 80% to 20%
-    - BATCH_SIZE: size used in training phase
-    - LAYER: num ber of layers in model 
-    - FEATURES: current training set has five features, update this value if more/less used 
-    - NODES: node count for NN model
-    - EPOCHS: number of epochs used in training phase
+5. Offer both code-based and pre-trained model approaches to option pricing
 
-#### 2. Calculating Options pricer using ANN (BS, Heston)
- - Open terminal app on Mac OSX
- - Download code from this github repo(https://github.com/laisee/ANN_Option_Pricing)
- - Run "pip install -r requirements.txt" to install python tools needed
- - Run "python3 ann_model_02/run_model.py "
- - Wait for Epochs(Training) to complete 50 iterations (can be changed in run_model.py script)
- - View chart showing training & testing loss values
- - Inside the code ("ann_model_02/run_model.py") settings can be updated, such as:
-    - EPOCHS: number of iteration training phase
+## LEARNING: Option Pricing Models
+
+### Black-Scholes Model
+The Black-Scholes model is a mathematical model for pricing options contracts. It assumes that the price of the underlying asset follows a geometric Brownian motion with constant volatility.
+
+- Implementation: `models/blackscholes.py` and `ann_price_calc/ann_model_01/run_bs_ann_sampledata.py`
+- Runner: `scripts/blackscholes/run_bs_calc.py`
+- Key parameters: spot price, strike price, time to maturity, risk-free rate, volatility
+
+### Binomial Tree Model
+The Binomial Tree model is a discrete-time model that simulates the evolution of the underlying asset price through a lattice of possible price paths.
+
+- Implementation: `models/binomial.py`
+- Key parameters: spot price, strike price, time to maturity, risk-free rate, volatility, number of steps
+
+### Heston Model
+The Heston model extends the Black-Scholes model by allowing for stochastic volatility, which better captures market dynamics.
+
+- Implementation: `models/heston.py`
+- Runners: 
+  - `scripts/heston/calc_heston.py` (standard implementation)
+  - `scripts/heston/calc_heston2.py` (alternative implementation)
+- Key parameters: spot price, strike price, time to maturity, risk-free rate, initial volatility, mean reversion rate, long-term volatility, volatility of volatility, correlation
+
+### Neural Network Models
+Neural networks can be trained to approximate option pricing functions, potentially offering faster computation for complex models.
+
+- Implementation: 
+  - `models/blackscholes.py` (BlackScholes_ANN class)
+  - `models/tiny_model.py` (TinyModel class)
+  - `ann_price_calc/original_ann/run_ann.py` (Original ANN implementation)
+  - `ann_price_calc/ann_model_01/run_bs_ann_sampledata.py` (BS ANN with sample data)
+  - `ann_price_calc/correlation/run_model.py` (Correlation network)
+- Runners:
+  - `scripts/utils/run_tinymodel.py`
+  - `scripts/utils/exec_tinymodel.py`
+  - `scripts/utils/simple_nn.py`
+
+## TRAINING: Building Model Weights
+
+### Training the Black-Scholes Neural Network
+
+The Black-Scholes neural network model can be trained to approximate the Black-Scholes formula:
+
+```
+python scripts/blackscholes/run_model.py
+```
+
+Or using the package entry point:
+
+```
+python -m ann_price_calc.ann_model_01.run_bs_ann_sampledata
+```
+
+This will:
+1. Generate training data using Latin Hypercube Sampling
+2. Train the neural network model
+3. Save the model weights to `models/bs_model_weights.pth`
+4. Compare the neural network predictions with the analytical Black-Scholes formula
+
+### Training the Heston Neural Network
+
+The Heston neural network model can be trained to approximate the Heston model:
+
+```
+python scripts/heston/run_model.py
+```
+
+This will:
+1. Generate training data for the Heston model
+2. Train the neural network model
+3. Save the model weights to `models/heston_model_weights.pth`
+
+### Training the Correlation Network
+
+The correlation network model can be trained using:
+
+```
+python -m ann_price_calc.correlation.run_model
+```
+
+This will:
+1. Load correlation data from `ann_price_calc/correlation/correlation_data.csv`
+2. Train a neural network to analyze correlations between assets
+3. Save the model weights to `ann_price_calc/correlation/correlation_net_weights.pth`
+
+### Training the Simple Neural Network
+
+A simple neural network for binary classification can be trained using:
+
+```
+make run_simple
+```
+
+### Training the Tiny Model
+
+The tiny model is a small neural network that can be trained using:
+
+```
+make run_tiny
+```
+
+This will save the model weights to `models/tinymodel.pth`.
+
+## EXECUTION: Running the Application
+
+### Local Development
+
+Launch the Streamlit app locally:
+
+```
+streamlit run app.py
+```
+
+This will start a web server and open the application in your default browser. The application provides an interactive interface for:
+- Setting option parameters (spot price, strike price, volatility, etc.)
+- Selecting the pricing model
+- Viewing option prices for both call and put options
+- Comparing results across different models
+
+### Running Individual Models
+
+#### Black-Scholes Model
+```
+make run_bs_calc       # Run Black-Scholes calculation
+```
+
+#### Heston Model
+```
+make run_heston_calc   # Run Heston model calculation
+make run_heston2_calc  # Run alternative Heston model calculation
+```
+
+#### Neural Network Models
+```
+make run_tiny          # Run tiny neural network model
+make exec_tiny         # Execute tiny model with pre-trained weights
+make run_simple        # Run simple neural network
+```
+
+#### ANN Package Models
+```
+python -m ann_price_calc.ann_model_01.run_bs_ann_sampledata  # Run BS ANN with sample data
+python -m ann_price_calc.correlation.run_model               # Run correlation network
+```
+
+#### Visualization
+```
+make run_visual        # Run visualization tools
+```
+
+## DEPLOY: Deploying to Heroku
+
+### Prerequisites
+1. Heroku CLI installed
+2. Logged in to Heroku (`heroku login`)
+3. Access to the `pt-neuralnet-pricing` Heroku app
+
+### Deployment Steps
+
+1. Build and push the container to Heroku:
+```
+make build
+```
+
+2. Release the container on Heroku:
+```
+make release
+```
+
+3. Restart the application (if needed):
+```
+make restart
+```
+
+4. Stop the application (if needed):
+```
+make stop
+```
+
+### Deployment Configuration
+
+The application is configured for Heroku deployment with:
+- `Procfile` - Defines the command to run the application
+- `setup.sh` - Sets up Streamlit configuration
+- `Dockerfile` - Defines the container configuration
+
+## Project Structure
+
+- `app/app.py`: Main Streamlit application entry point
+- `models/`: Model implementations and saved weights
+  - `blackscholes.py`: Black-Scholes model and neural network implementation
+  - `heston.py`: Heston model implementation
+  - `tiny_model.py`: Tiny neural network model
+- `scripts/`: Individual model runners and utilities
+  - `blackscholes/`: Black-Scholes related scripts
+  - `heston/`: Heston model related scripts
+  - `utils/`: Utility scripts
+  - `visualization/`: Visualization tools
+- `ann_price_calc/`: Python package with ANN implementations
+  - `ann_model_01/`: Black-Scholes ANN with sample data
+  - `correlation/`: Correlation network and data
+  - `original_ann/`: Original ANN implementation
+- `data/`: Sample and training data
+
+## Package Entry Points
+
+The project provides several command-line entry points defined in `pyproject.toml`:
+
+```
+run-ann-model-01  # Run Black-Scholes ANN with sample data
+run-ann-model-02  # Run ANN model 02
+run-ann-model-03  # Run correlation network
+```
+
+These can be used after installing the package with `pip install -e .`

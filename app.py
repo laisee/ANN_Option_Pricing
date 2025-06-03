@@ -12,7 +12,7 @@ import os
 from scipy.integrate import quad
 from dotenv import load_dotenv
 from scipy.stats import norm
-from models.blackscholes import BlackScholes_ANN as bs_ann
+from models.blackscholes.blackscholes import BlackScholes_ANN as bs_ann
 
 # Hestonn model parameters
 kappa = 2.0   # Mean reversion rate
