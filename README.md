@@ -174,7 +174,7 @@ make run_visual        # Run visualization tools
 ### Prerequisites
 1. Heroku CLI installed
 2. Logged in to Heroku (`heroku login`)
-3. Access to the `pt-neuralnet-pricing` Heroku app
+3. Access to a Heroku app
 
 ### Deployment Steps
 
@@ -207,7 +207,7 @@ The application is configured for Heroku deployment with:
 
 ## Project Structure
 
-- `app/app.py`: Main Streamlit application entry point
+- `app.py`: Main Streamlit application entry point
 - `models/`: Model implementations and saved weights
   - `blackscholes.py`: Black-Scholes model and neural network implementation
   - `heston.py`: Heston model implementation
