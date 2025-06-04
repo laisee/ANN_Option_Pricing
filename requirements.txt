@@ -1,4 +1,4 @@
-numpy==2.1.3
+numpy==1.26.4
 matplotlib==3.9.2
 pandas==2.2.3
 poetry==2.0.1
@@ -12,3 +12,4 @@ tqdm==4.67.0
 plotly==5.24.1
 torch==2.7.0
 smt==2.8.0
+tensorflow==2.18.0
