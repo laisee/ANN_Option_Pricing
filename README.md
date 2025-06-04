@@ -1,5 +1,7 @@
 # Option Pricing Web Application
 
+[![Python App](https://github.com/laisee/ANN_Option_Pricing/actions/workflows/python-app.yml/badge.svg)](https://github.com/laisee/ANN_Option_Pricing/actions/workflows/python-app.yml)
+
 ## Project Goals
 
 This project provides a comprehensive platform for option pricing using various mathematical models and machine learning techniques. The key objectives are:
