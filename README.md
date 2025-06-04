@@ -1,6 +1,7 @@
 # Option Pricing Web Application
 
 [![Python App](https://github.com/laisee/ANN_Option_Pricing/actions/workflows/python-app.yml/badge.svg)](https://github.com/laisee/ANN_Option_Pricing/actions/workflows/python-app.yml)
+[![Bandit Security Check](https://github.com/laisee/ANN_Option_Pricing/actions/workflows/main.yml/badge.svg)](https://github.com/laisee/ANN_Option_Pricing/actions/workflows/main.yml)
 
 ## Project Goals
 
