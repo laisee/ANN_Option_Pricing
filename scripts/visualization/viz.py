@@ -1,6 +1,5 @@
 # Visualization utilities for option pricing models
 import matplotlib.pyplot as plt
-import numpy as np
 
 def plot_option_prices(strikes, prices, model_name="Model", option_type="call"):
     """
