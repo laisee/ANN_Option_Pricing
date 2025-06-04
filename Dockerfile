@@ -16,8 +16,8 @@ COPY requirements.txt .
 # Upgrade pip separately
 RUN python -m pip install --upgrade pip
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies - use --no-warn-script-location to suppress warnings
+RUN pip install --no-cache-dir --no-warn-script-location -r requirements.txt
 
 # Second stage: Final image
 FROM python:3.12-slim
@@ -25,12 +25,21 @@ FROM python:3.12-slim
 # Set the working directory
 WORKDIR /app
 
+# Create a non-privileged user
+RUN adduser --disabled-password --gecos "" appuser
+
 # Copy only the installed dependencies from the build stage
 COPY --from=build /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=build /usr/local/bin /usr/local/bin
 
 # Copy the entire app directory
 COPY . .
+
+# Change ownership of the application files to the non-root user
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
 
 # Command to run the Streamlit app
 CMD ["sh", "-c", "streamlit run app.py --server.port=$PORT --server.address=0.0.0.0"]
