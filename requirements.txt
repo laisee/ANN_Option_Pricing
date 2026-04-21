@@ -3,7 +3,7 @@ matplotlib==3.9.2
 pandas==2.2.3
 poetry
 poetry-core
-python-dotenv==1.0.1
+python-dotenv==1.2.2
 redis==5.2.0
 scipy==1.14.1
 streamlit==1.54.0
